@@ -26,20 +26,18 @@ Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket t
 - Config-fil: `C:\Users\gerhardssonc\AppData\Roaming\Claude\claude_desktop_config.json`
 - Verifierat: Claude Desktop kan lista och läsa filer i projektmappen
 
-### Claude Code CLI ⏳ EJ INSTALLERAT ÄNNU
-- Nästa steg är att installera Claude Code CLI
-- Kommando att köra i PowerShell:
-  ```powershell
-  npm install -g @anthropic-ai/claude-code
-  claude --version
-  claude login
-  ```
+### Claude Code CLI ✅ KLART
+- Version: **2.1.85** (native installer)
+- Installerat via: `irm https://claude.ai/install.ps1 | iex`
+- Binär: `C:\Users\gerhardssonc\.local\bin\claude.exe`
+- PATH tillagd i User Environment Variables
+- Verifierat: `claude --version` returnerar `2.1.85 (Claude Code)`
 
 ---
 
 ## Planerade nästa steg
 
-1. **Installera Claude Code CLI** (se ovan)
+1. ~~**Installera Claude Code CLI**~~ ✅
 2. **Verifiera CLI** — navigera till projektmappen och starta `claude`
 3. **Migrera till Vite + TypeScript** enligt `PLAN-migrering.md`
 4. **Integrera API** för datahämtning (kommande feature)
