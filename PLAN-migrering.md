@@ -2,9 +2,12 @@
 
 ## Förutsättningar
 
-Detta arbete utförs med det nya arbetssättet enligt `PLAN-arbetssatt.md`.
-Kontrollera att Claude Desktop (Filesystem MCP) och Claude Code CLI är
-konfigurerade och verifierade innan du börjar.
+Detta arbete utförs med det fullständiga arbetssättet enligt `PLAN-arbetssatt.md`.
+Kontrollera att följande är klart innan du börjar:
+
+- ✅ Claude Desktop + Filesystem MCP installerat och verifierat
+- ✅ Claude Code CLI (v2.1.85+) installerat
+- ✅ BMAD installerat i projektmappen (`npx bmad-method install`)
 
 ---
 
@@ -20,7 +23,36 @@ Migrera appen från en enskild `index.html` till ett modernt projekt med:
 
 ---
 
-## Steg 1: Skapa ny branch (Claude Code CLI)
+## Fas 1: Planering med BMAD (Claude Code CLI)
+
+### Steg 1a: Generera projektkontexet
+
+Starta Claude Code CLI i projektmappen:
+```powershell
+cd C:\Users\gerhardssonc\Projekt_med_Claude\milrakt
+claude
+```
+
+Kör:
+```
+bmad-generate-project-context
+```
+
+BMAD skannar kodbasen och skapar `_bmad-output/project-context.md` som
+dokumenterar nuvarande stack, mönster och konventioner.
+
+### Steg 1b: Arkitektur och stories med BMAD Arkitekt
+
+I Claude Code CLI:
+```
+/architect
+```
+
+BMAD Arkitekt-agenten läser projektkontexten och producerar:
+- `_bmad-output/architecture.md` — teknisk arkitektur för Vite + TypeScript
+- `_bmad-output/stories/` — user stories för migreringen
+
+### Steg 1c: Skapa feature-branch (Claude Code CLI)
 
 ```bash
 git checkout -b feature/vite-ts-migration
@@ -28,9 +60,12 @@ git checkout -b feature/vite-ts-migration
 
 ---
 
-## Steg 2: Initiera Vite-projekt (Claude Desktop → disk)
+## Fas 2: Implementering (Claude Desktop → disk)
 
-Claude Desktop skapar följande filstruktur via Filesystem MCP:
+### Steg 2a: Filstruktur
+
+Claude Desktop skapar följande via Filesystem MCP, baserat på
+arkitekturdokumentet från BMAD:
 
 ```
 milrakt/
@@ -38,16 +73,16 @@ milrakt/
 │   └── workflows/
 │       └── deploy.yml          ← uppdateras för Vite-bygge
 ├── src/
-│   ├── main.ts                 ← ingångspunkt (ersätter index.html JS)
+│   ├── main.ts                 ← ingångspunkt
 │   ├── logic.ts                ← affärslogik (datumberäkningar)
 │   ├── ui.ts                   ← DOM-manipulering
 │   └── types.ts                ← TypeScript-typer
 ├── public/
 │   ├── manifest.json           ← flyttas hit
-│   └── icons/                  ← app-ikoner
+│   └── icons/
 ├── tests/
 │   └── logic.test.ts           ← enhetstester
-├── index.html                  ← Vite-mall (refererar src/main.ts)
+├── index.html                  ← Vite-mall
 ├── vite.config.ts
 ├── tsconfig.json
 ├── eslint.config.js
@@ -55,51 +90,7 @@ milrakt/
 └── README.md
 ```
 
----
-
-## Steg 3: Installera beroenden (Claude Code CLI)
-
-```bash
-npm install
-```
-
-Paket som ingår i `package.json`:
-
-```json
-{
-  "devDependencies": {
-    "vite": "^5.0.0",
-    "typescript": "^5.0.0",
-    "vitest": "^1.0.0",
-    "eslint": "^9.0.0",
-    "prettier": "^3.0.0",
-    "@types/node": "^20.0.0"
-  }
-}
-```
-
-Skript i `package.json`:
-
-```json
-{
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "type-check": "tsc --noEmit",
-    "test": "vitest run",
-    "test:watch": "vitest",
-    "lint": "eslint src"
-  }
-}
-```
-
----
-
-## Steg 4: Flytta affärslogik till TypeScript (Claude Desktop → disk)
-
-All datumberäkningslogik extraheras från `index.html` till `src/logic.ts`
-med strikta TypeScript-typer:
+### Steg 2b: Affärslogik i TypeScript
 
 ```typescript
 // src/types.ts
@@ -114,12 +105,9 @@ export interface MileageStatus {
 export function calculateMileageStatus(date: Date): MileageStatus { ... }
 ```
 
----
-
-## Steg 5: Skriv enhetstester (Claude Desktop → disk)
+### Steg 2c: Enhetstester
 
 `tests/logic.test.ts` täcker:
-
 - Startdatum (16 feb 2026) → 0 mil
 - Slutdatum (16 feb 2029) → 3000 mil
 - Mitt i avtalet → 1500 mil
@@ -128,40 +116,24 @@ export function calculateMileageStatus(date: Date): MileageStatus { ... }
 
 ---
 
-## Steg 6: Lokal validering (Claude Code CLI)
+## Fas 3: Lokal validering (Claude Code CLI)
 
 ```bash
+npm install
 npm run type-check   # Noll TypeScript-fel
 npm run test         # Alla tester gröna
 npm run build        # Produktionsbygge lyckas
 npm run lint         # Inga lint-varningar
 ```
 
-Om något misslyckas: åtgärdas av Claude Desktop via Filesystem MCP → 
-CLI kör om → loop tills 100% grönt.
+Om något misslyckas: rapporteras till Claude Desktop → åtgärdas via
+Filesystem MCP → CLI kör om → loop tills 100% grönt.
 
 ---
 
-## Steg 7: Uppdatera GitHub Actions (Claude Desktop → disk)
+## Fas 4: Leverans (Claude Code CLI + GitHub)
 
-`.github/workflows/deploy.yml` uppdateras för att bygga med Vite:
-
-```yaml
-- name: Install dependencies
-  run: npm ci
-
-- name: Build
-  run: npm run build
-
-- name: Upload artifact
-  uses: actions/upload-pages-artifact@v3
-  with:
-    path: './dist'          ← Vite bygger till /dist
-```
-
----
-
-## Steg 8: Push och deploy (Claude Code CLI)
+### Steg 4a: Push
 
 ```bash
 git add .
@@ -169,26 +141,30 @@ git commit -m "feat: migrate to Vite + TypeScript"
 git push origin feature/vite-ts-migration
 ```
 
-Skapa Pull Request på GitHub, granska, merga till `main`.
-GitHub Actions deployer automatiskt till Pages.
+### Steg 4b: Pull Request
+
+Claude Desktop skapar PR via GitHub API. Du granskar och mergar på GitHub.
+
+### Steg 4c: Automatisk deploy
+
+Vid merge till `main` triggar GitHub Actions:
+1. `npm ci`
+2. `npm run build` → bygger till `/dist`
+3. Deployer `/dist` till GitHub Pages
 
 Verifiera på: https://carlgerhardsson.github.io/milrakt/
 
----
-
-## Steg 9: Städa upp
+### Steg 4d: Städa upp
 
 ```bash
 git branch -d feature/vite-ts-migration
 git push origin --delete feature/vite-ts-migration
 ```
 
-Ta bort den gamla `index.html` om den inte längre behövs som rot.
-
 ---
 
 ## Efter migreringen
 
-Med Vite + TypeScript + Vitest på plats är projektet redo för nästa
+Med Vite + TypeScript + Vitest + BMAD på plats är projektet redo för nästa
 utvecklingssteg: API-integration, fler features och utökad testning —
-allt i ett robust, typsäkert ramverk.
+allt i ett robust, typsäkert och välplanerat ramverk.
