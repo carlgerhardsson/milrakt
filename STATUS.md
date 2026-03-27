@@ -29,27 +29,34 @@ Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket t
 - Version: **2.1.85** (native installer)
 - Installerat via: `irm https://claude.ai/install.ps1 | iex`
 - Binär: `C:\Users\gerhardssonc\.local\bin\claude.exe`
-- PATH tillagd i User Environment Variables
 - Verifierat: `claude --version` returnerar `2.1.85 (Claude Code)`
 
-### BMAD ⏳ INSTALLERAS NU
-- Kommando att köra i projektmappen:
-  ```powershell
-  cd C:\Users\gerhardssonc\Projekt_med_Claude\milrakt
-  npx bmad-method install
-  ```
-- Välj: current directory / Claude Code / BMad Method
-- Verifiera efteråt med: `bmad-help` inne i `claude`
+### BMAD ✅ KLART
+- Version: **v6** (stable release)
+- Installerat via: `npx bmad-method install` i projektmappen
+- Konfiguration:
+  - Namn: Calle
+  - Chattspråk: English
+  - Dokumentspråk: English
+  - Output-mapp: `_bmad-output`
+- Installerade filer:
+  - `_bmad/` — BMAD core + BMad Method-modul
+  - `_bmad-output/` — planning-artifacts, implementation-artifacts
+  - `.claude/skills/` — **43 skills** för Claude Code
+  - `docs/` — projektdokumentation
+- Viktiga skills: `bmad-help`, `bmad-generate-project-context`, `bmad-create-architecture`, `bmad-agent-architect`, `bmad-create-prd`, `bmad-create-epics-and-stories`, `bmad-dev-story`
 
 ---
 
 ## Planerade nästa steg
 
 1. ~~Installera Claude Code CLI~~ ✅
-2. **Installera BMAD** ⏳ (pågår)
-3. **Verifiera BMAD** — starta `claude` i projektmappen och kör `bmad-help`
-4. **Migrera till Vite + TypeScript** enligt `PLAN-migrering.md` (med BMAD)
-5. **Integrera API** för datahämtning (kommande feature)
+2. ~~Installera BMAD~~ ✅
+3. **Starta migreringen** — kör `bmad-generate-project-context` i Claude Code CLI
+4. **BMAD Arkitekt** — kör `/bmad-create-architecture` för Vite + TypeScript-migreringen
+5. **Implementera** med Claude Desktop via Filesystem MCP
+6. **Validera** med Claude Code CLI (type-check, test, build)
+7. **Deploya** via git push → GitHub Actions → Pages
 
 ---
 
@@ -81,3 +88,5 @@ Flöde:
 | `PLAN-migrering.md` | Plan för migrering till Vite + TypeScript med BMAD |
 | `STATUS.md` | Denna fil — sessionsstatus |
 | `.github/workflows/deploy.yml` | GitHub Actions deploy-pipeline |
+| `_bmad/` | BMAD core och modul-konfiguration |
+| `.claude/skills/` | 43 BMAD-skills för Claude Code |
