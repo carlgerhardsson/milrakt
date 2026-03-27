@@ -34,17 +34,14 @@ Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket t
 ### BMAD ✅ KLART
 - Version: **v6** (stable release)
 - Installerat via: `npx bmad-method install` i projektmappen
-- Konfiguration:
-  - Namn: Calle
-  - Chattspråk: English
-  - Dokumentspråk: English
-  - Output-mapp: `_bmad-output`
-- Installerade filer:
-  - `_bmad/` — BMAD core + BMad Method-modul
-  - `_bmad-output/` — planning-artifacts, implementation-artifacts
-  - `.claude/skills/` — **43 skills** för Claude Code
-  - `docs/` — projektdokumentation
-- Viktiga skills: `bmad-help`, `bmad-generate-project-context`, `bmad-create-architecture`, `bmad-agent-architect`, `bmad-create-prd`, `bmad-create-epics-and-stories`, `bmad-dev-story`
+- Konfiguration: Namn: Calle / Chattspråk: English / Dokumentspråk: English
+- 43 skills installerade under `.claude/skills/`
+
+### project-context.md ✅ KLART
+- Genererad via `bmad-generate-project-context` i Claude Code CLI
+- Fil: `_bmad-output/project-context.md`
+- 30 regler, 7 kategorier — täcker stack, TypeScript, Vite, Vitest, kodstil, workflow och anti-patterns
+- Alla BMAD-agenter läser denna fil före implementering
 
 ---
 
@@ -52,11 +49,12 @@ Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket t
 
 1. ~~Installera Claude Code CLI~~ ✅
 2. ~~Installera BMAD~~ ✅
-3. **Starta migreringen** — kör `bmad-generate-project-context` i Claude Code CLI
-4. **BMAD Arkitekt** — kör `/bmad-create-architecture` för Vite + TypeScript-migreringen
-5. **Implementera** med Claude Desktop via Filesystem MCP
-6. **Validera** med Claude Code CLI (type-check, test, build)
-7. **Deploya** via git push → GitHub Actions → Pages
+3. ~~Generera project-context.md~~ ✅
+4. **Skapa feature-branch** `feature/vite-ts-migration`
+5. **BMAD Arkitekt** — kör `bmad-create-architecture` i Claude Code CLI
+6. **Implementera** med Claude Desktop via Filesystem MCP
+7. **Validera** med Claude Code CLI (type-check, test, build)
+8. **Deploya** via git push → GitHub Actions → Pages
 
 ---
 
@@ -68,13 +66,6 @@ Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket t
 | Arkitekt | Claude Desktop + Filesystem MCP | Design, krav, kod skriven till disk |
 | Bygglag | Claude Code CLI | type-check, test, build, git, push |
 | CI/CD-robot | GitHub Actions | Bygg och deploy till Pages vid push |
-
-Flöde:
-1. **BMAD planerar** → architecture doc + user stories skapas lokalt
-2. **Claude Desktop implementerar** → filer skrivs via Filesystem MCP
-3. **Claude Code CLI validerar** → type-check + test + build
-4. **Vid grönt** → git commit + push via CLI
-5. **GitHub Actions deployer** automatiskt till Pages
 
 ---
 
@@ -90,3 +81,4 @@ Flöde:
 | `.github/workflows/deploy.yml` | GitHub Actions deploy-pipeline |
 | `_bmad/` | BMAD core och modul-konfiguration |
 | `.claude/skills/` | 43 BMAD-skills för Claude Code |
+| `_bmad-output/project-context.md` | Projektkontext för alla AI-agenter (30 regler) |
