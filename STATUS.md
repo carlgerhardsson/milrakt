@@ -3,6 +3,29 @@
 
 ---
 
+## ▶️ BÖRJA HÄR IMORGON
+
+**Fas:** Arkitektur med BMAD
+**Steg:** Kör `bmad-create-architecture` i Claude Code CLI
+
+```powershell
+cd C:\Users\gerhardssonc\Projekt_med_Claude\milrakt
+claude
+```
+
+Skriv sedan i Claude Code-sessionen:
+```
+bmad-create-architecture
+```
+
+BMAD Arkitekt-agenten läser `_bmad-output/project-context.md` automatiskt och
+producerar ett arkitekturdokument för Vite + TypeScript-migreringen.
+
+När arkitekturdokumentet är klart: meddela Claude Desktop (denna chatt) så
+tar vi över och börjar implementera filerna via Filesystem MCP.
+
+---
+
 ## Vad vi har byggt
 
 En mobilanpassad webbapp för att följa upp körsträcka vid privat elbilsleasing.
@@ -12,49 +35,36 @@ En mobilanpassad webbapp för att följa upp körsträcka vid privat elbilsleasi
 - **Repo:** https://github.com/carlgerhardsson/milrakt
 - **Deploy:** Automatisk via GitHub Actions vid push till main
 
-Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket tempo (mil/vecka) som krävs framöver.
-
 ---
 
 ## Miljö och verktyg — STATUS
 
 ### Claude Desktop + Filesystem MCP ✅ KLART
-- Claude Desktop installerat på Windows
-- Filesystem MCP konfigurerat och **running** (verifierat i Settings → Developer)
-- Repot klonat lokalt till:
-  `C:\Users\gerhardssonc\Projekt_med_Claude\milrakt`
-- Config-fil: `C:\Users\gerhardssonc\AppData\Roaming\Claude\claude_desktop_config.json`
+- Filesystem MCP konfigurerat och running
+- Projektmapp: `C:\Users\gerhardssonc\Projekt_med_Claude\milrakt`
 
 ### Claude Code CLI ✅ KLART
 - Version: **2.1.85** (native installer)
-- Installerat via: `irm https://claude.ai/install.ps1 | iex`
 - Binär: `C:\Users\gerhardssonc\.local\bin\claude.exe`
-- Verifierat: `claude --version` returnerar `2.1.85 (Claude Code)`
 
 ### BMAD ✅ KLART
-- Version: **v6** (stable release)
-- Installerat via: `npx bmad-method install` i projektmappen
-- Konfiguration: Namn: Calle / Chattspråk: English / Dokumentspråk: English
-- 43 skills installerade under `.claude/skills/`
+- Version: **v6**, 43 skills under `.claude/skills/`
+- Konfiguration: Calle / English / English / `_bmad-output`
 
 ### project-context.md ✅ KLART
-- Genererad via `bmad-generate-project-context` i Claude Code CLI
 - Fil: `_bmad-output/project-context.md`
-- 30 regler, 7 kategorier — täcker stack, TypeScript, Vite, Vitest, kodstil, workflow och anti-patterns
-- Alla BMAD-agenter läser denna fil före implementering
+- 30 regler, 7 kategorier
+- Täcker: stack, TypeScript, Vite, Vitest, kodstil, workflow, anti-patterns
 
 ---
 
-## Planerade nästa steg
+## Återstående steg för migreringen
 
-1. ~~Installera Claude Code CLI~~ ✅
-2. ~~Installera BMAD~~ ✅
-3. ~~Generera project-context.md~~ ✅
-4. **Skapa feature-branch** `feature/vite-ts-migration`
-5. **BMAD Arkitekt** — kör `bmad-create-architecture` i Claude Code CLI
-6. **Implementera** med Claude Desktop via Filesystem MCP
-7. **Validera** med Claude Code CLI (type-check, test, build)
-8. **Deploya** via git push → GitHub Actions → Pages
+4. **BMAD Arkitektur** ⬅️ NÄSTA — `bmad-create-architecture` i Claude Code CLI
+5. **Feature-branch** — `git checkout -b feature/vite-ts-migration`
+6. **Implementera** — Claude Desktop skriver filer via Filesystem MCP
+7. **Validera** — `npm run type-check && npm run test && npm run build`
+8. **Deploya** — git push → PR → merge → GitHub Actions → Pages
 
 ---
 
@@ -69,7 +79,7 @@ Appen visar hur många mil man borde ha kört på ett givet datum, samt vilket t
 
 ---
 
-## Viktiga filer i repot
+## Viktiga filer
 
 | Fil | Beskrivning |
 |-----|-------------|
