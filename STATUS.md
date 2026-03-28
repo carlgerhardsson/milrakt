@@ -5,25 +5,12 @@
 
 ## ▶️ BÖRJA HÄR
 
-**Fas:** Implementering — Phase 4 (BMAD fullt flöde)
+**Migreringen till Vite + TypeScript är KLAR och live.**
 
-I Claude Code CLI (på feature/vite-ts-migration):
-```
-bmad-check-implementation-readiness
-```
-Sedan:
-```
-bmad-sprint-planning
-```
-Sedan story för story:
-```
-bmad-create-story
-bmad-dev-story
-bmad-code-review
-```
-Validera efter varje story: `npm run type-check && npm run test && npm run build`
+Nästa feature: **Volvo API-integration** — se `PLAN-volvo-api.md`
 
-När alla 7 stories är gröna → meddela Claude Desktop så skapar vi PR.
+För att starta: Läs `PLAN-volvo-api.md` och gör de manuella förberedelserna
+(registrera Volvo Developer-konto, notera VIN, skapa Vercel-konto).
 
 ---
 
@@ -34,7 +21,7 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 - **Avtal:** 3 000 mil över 3 år, från 16 feb 2026 till 16 feb 2029
 - **Live URL:** https://carlgerhardsson.github.io/milrakt/
 - **Repo:** https://github.com/carlgerhardsson/milrakt
-- **Deploy:** Automatisk via GitHub Actions vid push till main
+- **Stack:** Vite + TypeScript + Vitest + GitHub Actions
 
 ---
 
@@ -43,61 +30,32 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 ### Claude Desktop + Filesystem MCP ✅ KLART
 ### Claude Code CLI ✅ KLART — v2.1.85
 ### BMAD ✅ KLART — v6, 43 skills
-### project-context.md ✅ KLART — 30 regler, 7 kategorier
-### architecture.md ✅ KLART
-### epics.md ✅ KLART — 2 epics, 7 stories
+### Vite + TypeScript-migrering ✅ KLAR och live
 
 ---
 
-## Återstående steg
+## Nästa feature — Volvo API
 
-1. ~~Installera Claude Code CLI~~ ✅
-2. ~~Installera BMAD~~ ✅
-3. ~~Generera project-context.md~~ ✅
-4. ~~BMAD Arkitektur~~ ✅
-5. ~~Skapa feature-branch~~ ✅ `feature/vite-ts-migration`
-6. ~~Epics och stories~~ ✅ 2 epics, 7 stories
-7. **Check Implementation Readiness** ⬅️ NÄSTA — `bmad-check-implementation-readiness`
-8. **Sprint Planning** — `bmad-sprint-planning`
-9. **Implementera** — `bmad-create-story` → `bmad-dev-story` → `bmad-code-review` × 7
-10. **Deploya** — git push → PR → merge → GitHub Actions → Pages
+**Status:** Ej påbörjad ⏳
 
----
+**Manuella förberedelser (du gör dessa):**
+- [ ] Registrera konto på https://developer.volvocars.com
+- [ ] Skapa app och notera VCC API Key
+- [ ] Notera ditt VIN (finns i Volvo-appen)
+- [ ] Skapa Vercel-konto på https://vercel.com (logga in med GitHub)
 
-## Stories att implementera (i ordning)
-
-| Story | Titel | Status |
-|-------|-------|--------|
-| 1.1 | Project Scaffold | ⏳ |
-| 1.2 | Mileage Calculation Logic | ⏳ |
-| 1.3 | Mileage Display UI | ⏳ |
-| 1.4 | Out-of-range Handling | ⏳ |
-| 1.5 | CSS Migration & Design Tokens | ⏳ |
-| 2.1 | PWA Manifest & Installability | ⏳ |
-| 2.2 | CI/CD Pipeline & Live Deployment | ⏳ |
+**När förberedelserna är klara:**
+Öppna ny Claude Desktop-chatt och skriv:
+> "Läs PLAN-volvo-api.md i milrakt och starta feature/volvo-api med BMAD"
 
 ---
 
-## Nyckelarkitekturbeslut att minnas
+## Fullständig historik
 
-- `MileageStatus` har `isOutOfRange: boolean` — Option A (enkel flagga)
-- `isOutOfRange === true` → visa "Utanför avtalsperioden", dölj alla värden
-- `base: '/milrakt/'` i vite.config.ts — ALLTID
-- `new Date(val + 'T12:00:00')` — timezone-säker datumparsning
-- Implementeringsordning: `types.ts` → `logic.ts` → `tests` → `ui.ts` → `main.ts`
-
----
-
-## Rollfördelning — VIKTIGT
-
-| Roll | Verktyg | Ansvar |
-|------|---------|--------|
-| Planerare/Bygglag | Claude Code CLI + BMAD | Epics, stories, implementering, git, push |
-| Koordinator | Claude Desktop | STATUS.md, PR, granskning |
-| CI/CD-robot | GitHub Actions | Bygg och deploy vid push till main |
-
-**Regel:** Claude Code CLI gör alla git-operationer och all implementering.
-Claude Desktop uppdaterar bara STATUS.md och skapar PR.
+| Feature | Status | Branch |
+|---------|--------|--------|
+| Vite + TypeScript-migrering | ✅ KLAR | main |
+| Volvo API-integration | ⏳ Planerad | - |
 
 ---
 
@@ -105,10 +63,9 @@ Claude Desktop uppdaterar bara STATUS.md och skapar PR.
 
 | Fil | Beskrivning |
 |-----|-------------|
-| `_bmad-output/project-context.md` | 30 regler för AI-agenter |
-| `_bmad-output/planning-artifacts/architecture.md` | Arkitekturdokument ✅ |
-| `_bmad-output/planning-artifacts/epics.md` | 2 epics, 7 stories ✅ |
-| `PLAN-migrering.md` | Migreringsplan med BMAD fullt flöde |
+| `PLAN-volvo-api.md` | Plan för Volvo API-integration ⏳ |
+| `PLAN-migrering.md` | Genomförd migrering ✅ |
+| `ARBETSSATT-MALL.md` | Generell mall för nya projekt |
 | `CLAUDE.md` | Projektminne för Claude Code CLI |
-| `STATUS.md` | Denna fil |
-| `.github/workflows/deploy.yml` | GitHub Actions deploy-pipeline |
+| `_bmad-output/project-context.md` | 30 regler för AI-agenter |
+| `_bmad-output/planning-artifacts/architecture.md` | Arkitektur ✅ |
