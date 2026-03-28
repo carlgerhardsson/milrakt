@@ -46,8 +46,8 @@ development_status:
   epic-1: in-progress
   1-1-project-scaffold: review
   1-2-mileage-calculation-logic: review
-  1-3-css-migration-design-tokens: backlog
-  1-4-mileage-display-ui: backlog
+  1-3-css-migration-design-tokens: review
+  1-4-mileage-display-ui: review
   1-5-out-of-range-handling: backlog
   epic-1-retrospective: optional
 
