@@ -1,34 +1,26 @@
 # Sessionsstatus — Milräknar-projektet
-*Senast uppdaterad: 2026-03-27*
+*Senast uppdaterad: 2026-03-28*
 
 ---
 
-## ▶️ BÖRJA HÄR IMORGON
+## ▶️ BÖRJA HÄR
 
-**Fas:** Arkitektur med BMAD
-**Steg:** Kör `bmad-create-architecture` i Claude Code CLI
+**Fas:** Implementering
+**Nästa steg:** Skapa feature-branch och börja skriva kod
 
-```powershell
-cd C:\Users\gerhardssonc\Projekt_med_Claude\milrakt
-claude
+I Claude Code CLI:
+```
+git checkout -b feature/vite-ts-migration
 ```
 
-Skriv sedan i Claude Code-sessionen:
-```
-bmad-create-architecture
-```
-
-BMAD Arkitekt-agenten läser `_bmad-output/project-context.md` automatiskt och
-producerar ett arkitekturdokument för Vite + TypeScript-migreringen.
-
-När arkitekturdokumentet är klart: meddela Claude Desktop (denna chatt) så
-tar vi över och börjar implementera filerna via Filesystem MCP.
+Sedan: meddela Claude Desktop (denna chatt) — så tar vi över och implementerar
+alla filer via Filesystem MCP, baserat på architecture.md.
 
 ---
 
 ## Vad vi har byggt
 
-En mobilanpassad webbapp för att följa upp körsträcka vid privat elbilsleasing.
+En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 - **Avtal:** 3 000 mil över 3 år, från 16 feb 2026 till 16 feb 2029
 - **Live URL:** https://carlgerhardsson.github.io/milrakt/
@@ -40,31 +32,33 @@ En mobilanpassad webbapp för att följa upp körsträcka vid privat elbilsleasi
 ## Miljö och verktyg — STATUS
 
 ### Claude Desktop + Filesystem MCP ✅ KLART
-- Filesystem MCP konfigurerat och running
-- Projektmapp: `C:\Users\gerhardssonc\Projekt_med_Claude\milrakt`
-
-### Claude Code CLI ✅ KLART
-- Version: **2.1.85** (native installer)
-- Binär: `C:\Users\gerhardssonc\.local\bin\claude.exe`
-
-### BMAD ✅ KLART
-- Version: **v6**, 43 skills under `.claude/skills/`
-- Konfiguration: Calle / English / English / `_bmad-output`
-
-### project-context.md ✅ KLART
-- Fil: `_bmad-output/project-context.md`
-- 30 regler, 7 kategorier
-- Täcker: stack, TypeScript, Vite, Vitest, kodstil, workflow, anti-patterns
+### Claude Code CLI ✅ KLART — v2.1.85
+### BMAD ✅ KLART — v6, 43 skills
+### project-context.md ✅ KLART — 30 regler, 7 kategorier
+### architecture.md ✅ KLART — redo för implementering
 
 ---
 
-## Återstående steg för migreringen
+## Återstående steg
 
-4. **BMAD Arkitektur** ⬅️ NÄSTA — `bmad-create-architecture` i Claude Code CLI
-5. **Feature-branch** — `git checkout -b feature/vite-ts-migration`
-6. **Implementera** — Claude Desktop skriver filer via Filesystem MCP
+1. ~~Installera Claude Code CLI~~ ✅
+2. ~~Installera BMAD~~ ✅
+3. ~~Generera project-context.md~~ ✅
+4. ~~BMAD Arkitektur~~ ✅
+5. **Skapa feature-branch** ⬅️ NÄSTA — `git checkout -b feature/vite-ts-migration`
+6. **Implementera** — Claude Desktop skriver alla filer via Filesystem MCP
 7. **Validera** — `npm run type-check && npm run test && npm run build`
 8. **Deploya** — git push → PR → merge → GitHub Actions → Pages
+
+---
+
+## Nyckelarkitekturbeslut att minnas
+
+- `MileageStatus` har `isOutOfRange: boolean` — Option A (enkel flagga)
+- `isOutOfRange === true` → visa "Utanför avtalsperioden", dölj alla värden
+- `base: '/milrakt/'` i vite.config.ts — ALLTID
+- `new Date(val + 'T12:00:00')` — timezone-säker datumparsning
+- Implementeringsordning: `types.ts` → `logic.ts` → `tests` → `ui.ts` → `main.ts`
 
 ---
 
@@ -83,12 +77,9 @@ En mobilanpassad webbapp för att följa upp körsträcka vid privat elbilsleasi
 
 | Fil | Beskrivning |
 |-----|-------------|
-| `index.html` | Hela appen (HTML/CSS/JS) |
-| `manifest.json` | PWA-manifest för iPhone-hemskärm |
-| `PLAN-arbetssatt.md` | Det fullständiga arbetssättet inkl. BMAD |
-| `PLAN-migrering.md` | Plan för migrering till Vite + TypeScript med BMAD |
-| `STATUS.md` | Denna fil — sessionsstatus |
+| `index.html` | Nuvarande app (ersätts vid migrering) |
+| `PLAN-migrering.md` | Migreringsplan |
+| `_bmad-output/project-context.md` | 30 regler för AI-agenter |
+| `_bmad-output/planning-artifacts/architecture.md` | Arkitekturdokument ✅ KLART |
+| `STATUS.md` | Denna fil |
 | `.github/workflows/deploy.yml` | GitHub Actions deploy-pipeline |
-| `_bmad/` | BMAD core och modul-konfiguration |
-| `.claude/skills/` | 43 BMAD-skills för Claude Code |
-| `_bmad-output/project-context.md` | Projektkontext för alla AI-agenter (30 regler) |
