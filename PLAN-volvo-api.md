@@ -26,9 +26,10 @@ använder OAuth2 med en hemlig klientnyckel (`VCC API key`) som **inte
 får exponeras i klientkoden**. Om den läggs i frontend-koden kan vem
 som helst se och missbruka din API-nyckel.
 
-**Lösning:** En liten serverlös backend (Vercel Serverless Functions)
-som proxar anrop till Volvo API. Användaren autentiserar sig mot Volvo
-via OAuth2 i webbläsaren, backenden hanterar token-utbytet.
+**Lösning:** En Google Cloud Function som proxar anrop till Volvo API.
+Användaren autentiserar sig mot Volvo via OAuth2 i webbläsaren,
+Cloud Function hanterar token-utbytet med API-nyckeln säkert lagrad
+i Google Secret Manager.
 
 Detta är en **engångsinvestering** — när den är på plats är
 arkitekturen redo för framtida API-integrationer.
@@ -42,18 +43,19 @@ arkitekturen redo för framtida API-integrationer.
 │                    NYTT SYSTEM                                  │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
-│  Användaren (webbläsare / PWA)                                  │
+│  Användaren (webbläsare / PWA på GitHub Pages)                  │
 │    │                                                            │
 │    │ 1. Klickar "Hämta verklig sträcka"                         │
 │    ▼                                                            │
-│  Vercel Serverless Function (proxy)                             │
+│  Google Cloud Function (proxy, kör i europe-north1)             │
 │    │                                                            │
 │    │ 2. OAuth2-token från Volvo Identity                        │
-│    │ 3. GET /connected-vehicle/v2/vehicles/{vin}/odometer       │
+│    │ 3. Hämtar API-nyckel från Secret Manager                   │
+│    │ 4. GET /connected-vehicle/v2/vehicles/{vin}/odometer       │
 │    ▼                                                            │
 │  Volvo Connected Vehicle API                                    │
 │    │                                                            │
-│    │ 4. { data: { odometer: { value: 12345, unit: 'km' } } }   │
+│    │ 5. { data: { odometer: { value: 12345, unit: 'km' } } }   │
 │    ▼                                                            │
 │  Appen visar: Verklig sträcka: 1 234.5 mil                      │
 │               Skillnad mot mål: +/-  X.X mil                   │
@@ -61,13 +63,25 @@ arkitekturen redo för framtida API-integrationer.
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Varför Vercel?
+### Varför Google Cloud Functions?
 
-- Gratis tier räcker gott för personlig användning
-- Serverless Functions = ingen server att underhålla
-- Stöder miljövariabler (API-nycklar lagras säkert)
-- Deploy via GitHub Actions (samma workflow som idag)
-- Domän: `milrakt.vercel.app` (eller custom domain)
+- **Gratis tier** räcker gott för personlig användning (2M anrop/månad gratis)
+- **Serverless** = ingen server att underhålla
+- **Secret Manager** lagrar API-nycklar säkert (bättre än miljövariabler)
+- **europe-north1** (Belgien/Norden) = låg latens från Sverige
+- **Deploy via GitHub Actions** med `google-github-actions` — samma CI/CD-mönster som idag
+- Du har förmodligen redan ett Google-konto
+
+### Alternativet — Hybrid-arkitektur (rekommenderat)
+
+Frontend stannar på GitHub Pages (billigast, enklast).
+Cloud Functions hanterar enbart `/api/*`-anrop.
+Frontend anropar Cloud Function URL:en för data.
+
+```
+github.io/milrakt/     → GitHub Pages (frontend, gratis)
+cloudfunctions.net/... → Google Cloud Function (backend, gratis tier)
+```
 
 ---
 
@@ -80,12 +94,11 @@ Dessa steg kräver manuell inloggning och kan inte automatiseras.
 1. Gå till https://developer.volvocars.com
 2. Skapa ett konto (använd din vanliga e-post)
 3. Gå till **Account → Your API Applications**
-4. Klicka **Create application**
-5. Fyll i:
+4. Klicka **Create application** och fyll i:
    - **Application name:** milrakt
    - **Description:** Personlig app för att följa upp körsträcka
    - **APIs:** Connected Vehicle API
-6. Spara och notera din **VCC API Key**
+5. Notera din **VCC API Key**, **Client ID** och **Client Secret**
 
 ### Steg B: Notera ditt VIN
 
@@ -94,20 +107,28 @@ Ditt fordonsidentifikationsnummer (VIN) finns:
 - På registreringsbeviset
 - På instrumentbrädan (synligt genom vindrutan)
 
-### Steg C: Skapa Vercel-konto
+### Steg C: Sätt upp Google Cloud
 
-1. Gå till https://vercel.com
-2. Logga in med ditt GitHub-konto
-3. Importera `milrakt`-repot
-4. Lägg till miljövariabler i Vercel-dashboard:
-   - `VOLVO_VCC_API_KEY` = din VCC API Key
-   - `VOLVO_CLIENT_ID` = din OAuth2 Client ID
-   - `VOLVO_CLIENT_SECRET` = din OAuth2 Client Secret
-   - `VOLVO_VIN` = ditt fordons VIN
+1. Gå till https://console.cloud.google.com
+2. Skapa ett nytt projekt: **milrakt**
+3. Aktivera dessa APIs i projektet:
+   - Cloud Functions API
+   - Cloud Build API
+   - Secret Manager API
+4. Skapa secrets i **Secret Manager**:
+   - `volvo-vcc-api-key` = din VCC API Key
+   - `volvo-client-id` = din Client ID
+   - `volvo-client-secret` = din Client Secret
+   - `volvo-vin` = ditt VIN
+5. Skapa ett **Service Account** för GitHub Actions:
+   - Namn: `milrakt-deployer`
+   - Roller: Cloud Functions Developer, Secret Manager Secret Accessor
+   - Ladda ner JSON-nyckeln och lägg till som GitHub Secret: `GCP_SA_KEY`
+6. Notera ditt **Project ID** och lägg till som GitHub Secret: `GCP_PROJECT_ID`
 
 ---
 
-## Volvos OAuth2-flöde (för referens)
+## Volvos OAuth2-flöde
 
 ```
 1. Användaren klickar "Anslut Volvo"
@@ -116,11 +137,11 @@ Ditt fordonsidentifikationsnummer (VIN) finns:
    ?client_id=CLIENT_ID
    &response_type=code
    &scope=openid+conve:odometer
-   &redirect_uri=https://milrakt.vercel.app/api/callback
+   &redirect_uri=https://REGION-PROJECT.cloudfunctions.net/volvo-callback
 
 3. Användaren loggar in med Volvo ID
 4. Volvo redirectar tillbaka med ?code=AUTHCODE
-5. Vercel Function byter code mot access_token
+5. Cloud Function byter code mot access_token
 6. access_token används för API-anrop mot Connected Vehicle API
 7. Odometer-värde returneras till appen
 ```
@@ -131,21 +152,23 @@ Ditt fordonsidentifikationsnummer (VIN) finns:
 
 ```
 milrakt/
-├── api/                         ← NYT — Vercel Serverless Functions
-│   ├── auth/
-│   │   ├── login.ts             ← Startar OAuth2-flödet
-│   │   └── callback.ts          ← Hanterar OAuth2-callback
-│   └── odometer.ts              ← Hämtar odometer från Volvo API
-├── src/
-│   ├── types.ts                 ← Utökas med VehicleData
+├── functions/                   ← NYT — Google Cloud Functions
+│   ├── src/
+│   │   ├── auth/
+│   │   │   ├── login.ts         ← Startar OAuth2-flödet
+│   │   │   └── callback.ts      ← Hanterar OAuth2-callback
+│   │   └── odometer.ts          ← Hämtar odometer från Volvo API
+│   ├── package.json
+│   └── tsconfig.json
+├── src/                         ← Befintlig frontend
+│   ├── types.ts                 ← Utökas med VehicleData, ComparisonResult
 │   ├── logic.ts                 ← Utökas med compareToTarget()
 │   ├── ui.ts                    ← Utökas med renderVehicleData()
 │   └── main.ts
 ├── tests/
 │   ├── logic.test.ts            ← Befintliga tester
 │   └── vehicle.test.ts          ← NYA tester för compareToTarget()
-├── vercel.json                  ← NYT — Vercel-konfiguration
-└── .env.example                 ← NYT — Mall för miljövariabler
+└── .env.example                 ← Mall för lokala miljövariabler
 ```
 
 ---
@@ -195,31 +218,38 @@ export interface ComparisonResult {
 
 ---
 
-## API-endpoint (Vercel Function)
+## Cloud Function — odometer
 
 ```typescript
-// api/odometer.ts
-// GET /api/odometer
-// Returnerar: { odometerKm: number, fetchedAt: string }
+// functions/src/odometer.ts
+import { HttpFunction } from '@google-cloud/functions-framework'
+import { SecretManagerServiceClient } from '@google-cloud/secret-manager'
 
-export default async function handler(req, res) {
-  const token = await getAccessToken() // från session/cookie
-  const vin = process.env.VOLVO_VIN
+export const getOdometer: HttpFunction = async (req, res) => {
+  // CORS för GitHub Pages
+  res.set('Access-Control-Allow-Origin', 'https://carlgerhardsson.github.io')
 
+  const secrets = new SecretManagerServiceClient()
+  const [apiKey] = await secrets.accessSecretVersion({
+    name: 'projects/PROJECT_ID/secrets/volvo-vcc-api-key/versions/latest'
+  })
+  const [vin] = await secrets.accessSecretVersion({
+    name: 'projects/PROJECT_ID/secrets/volvo-vin/versions/latest'
+  })
+
+  const token = req.headers.authorization // access_token från frontend
   const response = await fetch(
     `https://api.volvocars.com/connected-vehicle/v2/vehicles/${vin}/odometer`,
     {
       headers: {
-        'authorization': `Bearer ${token}`,
-        'vcc-api-key': process.env.VOLVO_VCC_API_KEY,
+        'authorization': token,
+        'vcc-api-key': apiKey.payload.data.toString(),
         'accept': 'application/json'
       }
     }
   )
 
   const data = await response.json()
-  // data.data.odometer.value = värde i km
-
   res.json({
     odometerKm: data.data.odometer.value,
     fetchedAt: new Date().toISOString()
@@ -229,28 +259,58 @@ export default async function handler(req, res) {
 
 ---
 
+## GitHub Actions — deploy Cloud Function
+
+```yaml
+# .github/workflows/deploy-functions.yml
+name: Deploy Cloud Functions
+
+on:
+  push:
+    branches: [main]
+    paths: ['functions/**']
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - uses: google-github-actions/deploy-cloud-functions@v3
+        with:
+          name: volvo-odometer
+          runtime: nodejs20
+          region: europe-north1
+          source_dir: functions
+          entry_point: getOdometer
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+```
+
+---
+
 ## Implementeringsfaser
 
-### Fas 1: Backend-infrastruktur
-
-**Story 1.1:** Vercel-uppsättning och miljövariabler
-**Story 1.2:** OAuth2-login endpoint (`/api/auth/login`)
-**Story 1.3:** OAuth2-callback endpoint (`/api/auth/callback`)
-**Story 1.4:** Odometer-endpoint (`/api/odometer`)
+### Fas 1: Google Cloud-infrastruktur
+**Story 1.1:** GCP-projekt, Secret Manager och Service Account  
+**Story 1.2:** OAuth2-login Cloud Function  
+**Story 1.3:** OAuth2-callback Cloud Function  
+**Story 1.4:** Odometer Cloud Function + GitHub Actions deploy  
 
 ### Fas 2: Frontend-integration
-
-**Story 2.1:** Nya TypeScript-typer (`VehicleData`, `ComparisonResult`)
-**Story 2.2:** `compareToTarget()` i logic.ts + tester
-**Story 2.3:** "Anslut Volvo"-knapp och OAuth2-flöde i UI
-**Story 2.4:** Visa verklig sträcka och jämförelse i UI
-**Story 2.5:** Felhantering och laddningstillstånd
+**Story 2.1:** Nya TypeScript-typer (`VehicleData`, `ComparisonResult`)  
+**Story 2.2:** `compareToTarget()` i logic.ts + tester  
+**Story 2.3:** "Anslut Volvo"-knapp och OAuth2-flöde i UI  
+**Story 2.4:** Visa verklig sträcka och jämförelse i UI  
+**Story 2.5:** Felhantering och laddningstillstånd  
 
 ### Fas 3: Deploy och verifiering
-
-**Story 3.1:** Uppdatera GitHub Actions för Vercel-deploy
-**Story 3.2:** End-to-end-test med riktigt Volvo ID
-**Story 3.3:** Uppdatera PWA manifest och ikoner
+**Story 3.1:** End-to-end-test med riktigt Volvo ID  
+**Story 3.2:** CORS-konfiguration och säkerhetsgranskning  
+**Story 3.3:** Uppdatera PWA manifest  
 
 ---
 
@@ -260,41 +320,23 @@ export default async function handler(req, res) {
 |------|-------------|----------|
 | EX30 returnerar 404 för specifika endpoints | Låg | Testa med sandbox-token innan implementering |
 | OAuth2-app granskas av Volvo | Medel | Personliga appar granskas normalt snabbt (1-3 dagar) |
-| API rate limit (100 req/min) | Låg | Appen hämtar data on-demand, inte i realtid |
-| access_token löper ut (30 min) | Känd | Hantera med refresh_token i callback.ts |
+| GCP gratis tier löper ut | Låg | 2M anrop/månad — räcker för personlig app |
+| access_token löper ut (30 min) | Känd | Hantera med refresh_token i callback |
 | Volvo-bilen i viloläge (>3-5 dagar) | Låg | Visa senast hämtade värde med timestamp |
-
----
-
-## Vercel vs GitHub Pages
-
-Eftersom vi nu behöver en backend kan vi inte längre köra enbart på
-GitHub Pages (som bara stöder statiska filer). Vi har två alternativ:
-
-**Alternativ A — Hybrid (rekommenderat):**
-- GitHub Pages fortsätter hålla frontend (index.html, JS, CSS)
-- Vercel håller enbart API-funktionerna (`/api/*`)
-- Frontend anropar Vercel-URL:en för data
-
-**Alternativ B — Flytta allt till Vercel:**
-- Vercel håller både frontend och backend
-- Enklare arkitektur, en deploy-pipeline
-- Gratis tier räcker för personlig användning
-
-Rekommendation: **Alternativ B** — smidigare, ett ställe att hantera.
+| CORS-fel från GitHub Pages till Cloud Function | Känd | Sätt Access-Control-Allow-Origin i Cloud Function |
 
 ---
 
 ## Arbetssätt
 
-Samma som för migreringen — BMAD fullt flöde:
-1. `bmad-generate-project-context` (uppdatera för ny stack)
-2. `bmad-create-architecture` (Vercel + OAuth2-arkitektur)
+Samma BMAD fullt flöde som för migreringen:
+1. `bmad-generate-project-context` (uppdatera för ny stack med GCP)
+2. `bmad-create-architecture` (Cloud Functions + OAuth2-arkitektur)
 3. `bmad-create-epics-and-stories`
 4. `git checkout -b feature/volvo-api`
-5. `bmad-dev-story` per story
+5. `bmad-dev-story` per story — **aldrig pusha direkt till main**
 6. Validera efter varje story
-7. PR → merge → auto-deploy
+7. PR → merge → GitHub Actions deployer automatiskt
 
 ---
 
@@ -303,8 +345,9 @@ Samma som för migreringen — BMAD fullt flöde:
 - Volvo Developer Portal: https://developer.volvocars.com
 - Connected Vehicle API: https://developer.volvocars.com/apis/connected-vehicle/v2/overview/
 - Odometer endpoint: https://developer.volvocars.com/apis/connected-vehicle/v2/endpoints/odometer/
-- Authorisation guide: https://developer.volvocars.com/apis/docs/authorisation/
-- Vercel: https://vercel.com
+- Google Cloud Console: https://console.cloud.google.com
+- Cloud Functions dokumentation: https://cloud.google.com/functions/docs
+- google-github-actions/deploy-cloud-functions: https://github.com/google-github-actions/deploy-cloud-functions
 
 ---
 
@@ -313,6 +356,6 @@ Samma som för migreringen — BMAD fullt flöde:
 1. ✅ Läs denna plan
 2. ⏳ Registrera dig på Volvo Developer Portal och skapa en app
 3. ⏳ Notera ditt VIN
-4. ⏳ Skapa Vercel-konto och koppla till GitHub-repot
+4. ⏳ Sätt upp Google Cloud-projekt med Secret Manager (Steg C ovan)
 5. ⏳ Öppna ny Claude Desktop-chatt och skriv:
    > "Läs PLAN-volvo-api.md och starta feature/volvo-api med BMAD"
