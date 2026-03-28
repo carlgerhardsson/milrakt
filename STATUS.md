@@ -9,8 +9,13 @@
 
 Nästa feature: **Volvo API-integration** — se `PLAN-volvo-api.md`
 
-För att starta: Läs `PLAN-volvo-api.md` och gör de manuella förberedelserna
-(registrera Volvo Developer-konto, notera VIN, skapa Vercel-konto).
+**Manuella förberedelser innan vi kan starta:**
+- [ ] Registrera app på https://developer.volvocars.com — notera VCC API Key, Client ID, Client Secret
+- [ ] Notera ditt VIN (finns i Volvo-appen)
+- [ ] Sätt upp GCP-projekt med Secret Manager och Service Account (se Steg C i PLAN-volvo-api.md)
+
+**När förberedelserna är klara — öppna ny chatt och skriv:**
+> "Läs PLAN-volvo-api.md i milrakt och starta feature/volvo-api med BMAD"
 
 ---
 
@@ -25,37 +30,22 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 ---
 
-## Miljö och verktyg — STATUS
+## Miljö och verktyg
 
-### Claude Desktop + Filesystem MCP ✅ KLART
-### Claude Code CLI ✅ KLART — v2.1.85
-### BMAD ✅ KLART — v6, 43 skills
-### Vite + TypeScript-migrering ✅ KLAR och live
-
----
-
-## Nästa feature — Volvo API
-
-**Status:** Ej påbörjad ⏳
-
-**Manuella förberedelser (du gör dessa):**
-- [ ] Registrera konto på https://developer.volvocars.com
-- [ ] Skapa app och notera VCC API Key
-- [ ] Notera ditt VIN (finns i Volvo-appen)
-- [ ] Skapa Vercel-konto på https://vercel.com (logga in med GitHub)
-
-**När förberedelserna är klara:**
-Öppna ny Claude Desktop-chatt och skriv:
-> "Läs PLAN-volvo-api.md i milrakt och starta feature/volvo-api med BMAD"
+### Claude Desktop + Filesystem MCP ✅
+### Claude Code CLI ✅ — v2.1.85
+### BMAD ✅ — v6, 43 skills
+### Vite + TypeScript-migrering ✅ — live på GitHub Pages
 
 ---
 
-## Fullständig historik
+## Feature-historik
 
-| Feature | Status | Branch |
-|---------|--------|--------|
-| Vite + TypeScript-migrering | ✅ KLAR | main |
-| Volvo API-integration | ⏳ Planerad | - |
+| Feature | Status | Arkitektur |
+|---------|--------|------------|
+| Vite + TypeScript-migrering | ✅ KLAR | GitHub Pages |
+| Volvo API-integration | ⏳ Planerad | GitHub Pages + Google Cloud Functions |
+| Custom domän (valfri) | 💡 Framtida | TBD |
 
 ---
 
@@ -63,9 +53,9 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 | Fil | Beskrivning |
 |-----|-------------|
-| `PLAN-volvo-api.md` | Plan för Volvo API-integration ⏳ |
-| `PLAN-migrering.md` | Genomförd migrering ✅ |
+| `PLAN-volvo-api.md` | Plan för Volvo API med GCP ⏳ |
+| `PLAN-migrering.md` | Genomförd Vite-migrering ✅ |
 | `ARBETSSATT-MALL.md` | Generell mall för nya projekt |
 | `CLAUDE.md` | Projektminne för Claude Code CLI |
 | `_bmad-output/project-context.md` | 30 regler för AI-agenter |
-| `_bmad-output/planning-artifacts/architecture.md` | Arkitektur ✅ |
+| `_bmad-output/planning-artifacts/architecture.md` | Vite-arkitektur ✅ |
