@@ -5,22 +5,25 @@
 
 ## ▶️ BÖRJA HÄR
 
-**Fas:** Epics och stories med BMAD
+**Fas:** Implementering — Phase 4 (BMAD fullt flöde)
 
-I Claude Code CLI:
+I Claude Code CLI (på feature/vite-ts-migration):
 ```
-git checkout -b feature/vite-ts-migration
+bmad-check-implementation-readiness
 ```
-
 Sedan:
 ```
-bmad-create-epics-and-stories
+bmad-sprint-planning
 ```
+Sedan story för story:
+```
+bmad-create-story
+bmad-dev-story
+bmad-code-review
+```
+Validera efter varje story: `npm run type-check && npm run test && npm run build`
 
-När stories är klara → kör `bmad-dev-story` för varje story i tur och ordning.
-Efter varje story: validera med `npm run type-check && npm run test && npm run build`.
-
-När allt är grönt → meddela Claude Desktop så skapar vi PR.
+När alla 7 stories är gröna → meddela Claude Desktop så skapar vi PR.
 
 ---
 
@@ -41,7 +44,8 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 ### Claude Code CLI ✅ KLART — v2.1.85
 ### BMAD ✅ KLART — v6, 43 skills
 ### project-context.md ✅ KLART — 30 regler, 7 kategorier
-### architecture.md ✅ KLART — redo för implementering
+### architecture.md ✅ KLART
+### epics.md ✅ KLART — 2 epics, 7 stories
 
 ---
 
@@ -51,11 +55,26 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 2. ~~Installera BMAD~~ ✅
 3. ~~Generera project-context.md~~ ✅
 4. ~~BMAD Arkitektur~~ ✅
-5. **Skapa feature-branch** ⬅️ NÄSTA — `git checkout -b feature/vite-ts-migration`
-6. **Epics och stories** — `bmad-create-epics-and-stories`
-7. **Implementera** — `bmad-dev-story` för varje story
-8. **Validera** — `npm run type-check && npm run test && npm run build`
-9. **Deploya** — git push → PR → merge → GitHub Actions → Pages
+5. ~~Skapa feature-branch~~ ✅ `feature/vite-ts-migration`
+6. ~~Epics och stories~~ ✅ 2 epics, 7 stories
+7. **Check Implementation Readiness** ⬅️ NÄSTA — `bmad-check-implementation-readiness`
+8. **Sprint Planning** — `bmad-sprint-planning`
+9. **Implementera** — `bmad-create-story` → `bmad-dev-story` → `bmad-code-review` × 7
+10. **Deploya** — git push → PR → merge → GitHub Actions → Pages
+
+---
+
+## Stories att implementera (i ordning)
+
+| Story | Titel | Status |
+|-------|-------|--------|
+| 1.1 | Project Scaffold | ⏳ |
+| 1.2 | Mileage Calculation Logic | ⏳ |
+| 1.3 | Mileage Display UI | ⏳ |
+| 1.4 | Out-of-range Handling | ⏳ |
+| 1.5 | CSS Migration & Design Tokens | ⏳ |
+| 2.1 | PWA Manifest & Installability | ⏳ |
+| 2.2 | CI/CD Pipeline & Live Deployment | ⏳ |
 
 ---
 
@@ -69,14 +88,16 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 ---
 
-## Arbetssätt — BMAD fullt flöde
+## Rollfördelning — VIKTIGT
 
 | Roll | Verktyg | Ansvar |
 |------|---------|--------|
-| Planerare | Claude Code CLI + BMAD | Arkitektur, epics, stories, implementering |
-| Koordinator | Claude Desktop | Granskning, PR, GitHub API, dokumentation |
-| Bygglag | Claude Code CLI | type-check, test, build, git, push |
-| CI/CD-robot | GitHub Actions | Bygg och deploy till Pages vid push |
+| Planerare/Bygglag | Claude Code CLI + BMAD | Epics, stories, implementering, git, push |
+| Koordinator | Claude Desktop | STATUS.md, PR, granskning |
+| CI/CD-robot | GitHub Actions | Bygg och deploy vid push till main |
+
+**Regel:** Claude Code CLI gör alla git-operationer och all implementering.
+Claude Desktop uppdaterar bara STATUS.md och skapar PR.
 
 ---
 
@@ -84,11 +105,10 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 | Fil | Beskrivning |
 |-----|-------------|
-| `index.html` | Nuvarande app (ersätts vid migrering) |
-| `PLAN-migrering.md` | Migreringsplan med BMAD fullt flöde |
-| `PLAN-arbetssatt.md` | Det fullständiga arbetssättet |
 | `_bmad-output/project-context.md` | 30 regler för AI-agenter |
 | `_bmad-output/planning-artifacts/architecture.md` | Arkitekturdokument ✅ |
-| `STATUS.md` | Denna fil |
+| `_bmad-output/planning-artifacts/epics.md` | 2 epics, 7 stories ✅ |
+| `PLAN-migrering.md` | Migreringsplan med BMAD fullt flöde |
 | `CLAUDE.md` | Projektminne för Claude Code CLI |
+| `STATUS.md` | Denna fil |
 | `.github/workflows/deploy.yml` | GitHub Actions deploy-pipeline |
