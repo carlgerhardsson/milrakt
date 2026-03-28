@@ -5,16 +5,22 @@
 
 ## ▶️ BÖRJA HÄR
 
-**Fas:** Implementering
-**Nästa steg:** Skapa feature-branch och börja skriva kod
+**Fas:** Epics och stories med BMAD
 
 I Claude Code CLI:
 ```
 git checkout -b feature/vite-ts-migration
 ```
 
-Sedan: meddela Claude Desktop (denna chatt) — så tar vi över och implementerar
-alla filer via Filesystem MCP, baserat på architecture.md.
+Sedan:
+```
+bmad-create-epics-and-stories
+```
+
+När stories är klara → kör `bmad-dev-story` för varje story i tur och ordning.
+Efter varje story: validera med `npm run type-check && npm run test && npm run build`.
+
+När allt är grönt → meddela Claude Desktop så skapar vi PR.
 
 ---
 
@@ -46,9 +52,10 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 3. ~~Generera project-context.md~~ ✅
 4. ~~BMAD Arkitektur~~ ✅
 5. **Skapa feature-branch** ⬅️ NÄSTA — `git checkout -b feature/vite-ts-migration`
-6. **Implementera** — Claude Desktop skriver alla filer via Filesystem MCP
-7. **Validera** — `npm run type-check && npm run test && npm run build`
-8. **Deploya** — git push → PR → merge → GitHub Actions → Pages
+6. **Epics och stories** — `bmad-create-epics-and-stories`
+7. **Implementera** — `bmad-dev-story` för varje story
+8. **Validera** — `npm run type-check && npm run test && npm run build`
+9. **Deploya** — git push → PR → merge → GitHub Actions → Pages
 
 ---
 
@@ -62,12 +69,12 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 ---
 
-## Arbetssätt
+## Arbetssätt — BMAD fullt flöde
 
 | Roll | Verktyg | Ansvar |
 |------|---------|--------|
-| Planerare | Claude Code CLI + BMAD | Arkitektur, stories, projektkontext |
-| Arkitekt | Claude Desktop + Filesystem MCP | Design, krav, kod skriven till disk |
+| Planerare | Claude Code CLI + BMAD | Arkitektur, epics, stories, implementering |
+| Koordinator | Claude Desktop | Granskning, PR, GitHub API, dokumentation |
 | Bygglag | Claude Code CLI | type-check, test, build, git, push |
 | CI/CD-robot | GitHub Actions | Bygg och deploy till Pages vid push |
 
@@ -78,8 +85,10 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 | Fil | Beskrivning |
 |-----|-------------|
 | `index.html` | Nuvarande app (ersätts vid migrering) |
-| `PLAN-migrering.md` | Migreringsplan |
+| `PLAN-migrering.md` | Migreringsplan med BMAD fullt flöde |
+| `PLAN-arbetssatt.md` | Det fullständiga arbetssättet |
 | `_bmad-output/project-context.md` | 30 regler för AI-agenter |
-| `_bmad-output/planning-artifacts/architecture.md` | Arkitekturdokument ✅ KLART |
+| `_bmad-output/planning-artifacts/architecture.md` | Arkitekturdokument ✅ |
 | `STATUS.md` | Denna fil |
+| `CLAUDE.md` | Projektminne för Claude Code CLI |
 | `.github/workflows/deploy.yml` | GitHub Actions deploy-pipeline |

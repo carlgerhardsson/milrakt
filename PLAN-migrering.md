@@ -2,12 +2,14 @@
 
 ## Förutsättningar
 
-Detta arbete utförs med det fullständiga arbetssättet enligt `PLAN-arbetssatt.md`.
+Detta arbete utförs med BMAD:s fulla flöde enligt `PLAN-arbetssatt.md`.
 Kontrollera att följande är klart innan du börjar:
 
 - ✅ Claude Desktop + Filesystem MCP installerat och verifierat
 - ✅ Claude Code CLI (v2.1.85+) installerat
-- ✅ BMAD installerat i projektmappen (`npx bmad-method install`)
+- ✅ BMAD v6 installerat i projektmappen
+- ✅ `_bmad-output/project-context.md` genererad (30 regler)
+- ✅ `_bmad-output/planning-artifacts/architecture.md` klar
 
 ---
 
@@ -23,118 +25,69 @@ Migrera appen från en enskild `index.html` till ett modernt projekt med:
 
 ---
 
-## Fas 1: Planering med BMAD (Claude Code CLI)
+## Fas 1: Planering med BMAD ✅ KLAR
 
-### Steg 1a: Generera projektkontexet
+### Steg 1a: Generera projektkontexten ✅
+`bmad-generate-project-context` → `_bmad-output/project-context.md`
 
-Starta Claude Code CLI i projektmappen:
-```powershell
-cd C:\Users\gerhardssonc\Projekt_med_Claude\milrakt
-claude
-```
+### Steg 1b: Arkitektur ✅
+`bmad-create-architecture` → `_bmad-output/planning-artifacts/architecture.md`
 
-Kör:
-```
-bmad-generate-project-context
-```
+Nyckelarkitekturbeslut:
+- `MileageStatus` med `isOutOfRange: boolean` (Option A)
+- Strikt moduluppdelning: `types.ts` → `logic.ts` → `ui.ts` → `main.ts`
+- `base: '/milrakt/'` i vite.config.ts — ALLTID
+- `new Date(val + 'T12:00:00')` — timezone-säker datumparsning
 
-BMAD skannar kodbasen och skapar `_bmad-output/project-context.md` som
-dokumenterar nuvarande stack, mönster och konventioner.
+---
 
-### Steg 1b: Arkitektur och stories med BMAD Arkitekt
+## Fas 2: Stories med BMAD (Claude Code CLI) ⬅️ NÄSTA
 
-I Claude Code CLI:
-```
-/architect
-```
-
-BMAD Arkitekt-agenten läser projektkontexten och producerar:
-- `_bmad-output/architecture.md` — teknisk arkitektur för Vite + TypeScript
-- `_bmad-output/stories/` — user stories för migreringen
-
-### Steg 1c: Skapa feature-branch (Claude Code CLI)
-
+### Steg 2a: Skapa feature-branch
 ```bash
 git checkout -b feature/vite-ts-migration
 ```
 
----
-
-## Fas 2: Implementering (Claude Desktop → disk)
-
-### Steg 2a: Filstruktur
-
-Claude Desktop skapar följande via Filesystem MCP, baserat på
-arkitekturdokumentet från BMAD:
-
+### Steg 2b: Generera epics och stories
+I Claude Code CLI:
 ```
-milrakt/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          ← uppdateras för Vite-bygge
-├── src/
-│   ├── main.ts                 ← ingångspunkt
-│   ├── logic.ts                ← affärslogik (datumberäkningar)
-│   ├── ui.ts                   ← DOM-manipulering
-│   └── types.ts                ← TypeScript-typer
-├── public/
-│   ├── manifest.json           ← flyttas hit
-│   └── icons/
-├── tests/
-│   └── logic.test.ts           ← enhetstester
-├── index.html                  ← Vite-mall
-├── vite.config.ts
-├── tsconfig.json
-├── eslint.config.js
-├── package.json
-└── README.md
+bmad-create-epics-and-stories
 ```
 
-### Steg 2b: Affärslogik i TypeScript
+BMAD bryter ner migreringen i implementerbara stories baserat på
+arkitekturdokumentets 10-stegs implementeringssekvens.
 
-```typescript
-// src/types.ts
-export interface MileageStatus {
-  targetMileage: number;       // Mil du borde ha kört
-  percentComplete: number;     // Andel av avtalet
-  milesPerWeekNeeded: number;  // Tempo att hålla framöver
-  daysLeft: number;
-}
-
-// src/logic.ts
-export function calculateMileageStatus(date: Date): MileageStatus { ... }
-```
-
-### Steg 2c: Enhetstester
-
-`tests/logic.test.ts` täcker:
-- Startdatum (16 feb 2026) → 0 mil
-- Slutdatum (16 feb 2029) → 3000 mil
-- Mitt i avtalet → 1500 mil
-- Datum utanför avtalsperioden → felhantering
-- Beräkning av mil/vecka-tempo
+Stories sparas i `_bmad-output/planning-artifacts/`.
 
 ---
 
-## Fas 3: Lokal validering (Claude Code CLI)
+## Fas 3: Implementering med BMAD Dev-agent (Claude Code CLI)
 
+### Steg 3a: Implementera story för story
+I Claude Code CLI:
+```
+bmad-dev-story
+```
+
+BMAD Dev-agenten:
+- Läser architecture.md och project-context.md
+- Implementerar en story i taget
+- Följer implementeringsordningen: `types.ts` → `logic.ts` → `tests` → `ui.ts` → `main.ts` → CSS → config
+
+### Steg 3b: Validera efter varje story
 ```bash
-npm install
-npm run type-check   # Noll TypeScript-fel
-npm run test         # Alla tester gröna
-npm run build        # Produktionsbygge lyckas
-npm run lint         # Inga lint-varningar
+npm run type-check
+npm run test
+npm run build
 ```
 
-Om något misslyckas: rapporteras till Claude Desktop → åtgärdas via
-Filesystem MCP → CLI kör om → loop tills 100% grönt.
+Om något misslyckas: BMAD Dev-agenten åtgärdar → kör om → loop tills 100% grönt.
 
 ---
 
 ## Fas 4: Leverans (Claude Code CLI + GitHub)
 
 ### Steg 4a: Push
-
 ```bash
 git add .
 git commit -m "feat: migrate to Vite + TypeScript"
@@ -142,11 +95,9 @@ git push origin feature/vite-ts-migration
 ```
 
 ### Steg 4b: Pull Request
-
 Claude Desktop skapar PR via GitHub API. Du granskar och mergar på GitHub.
 
 ### Steg 4c: Automatisk deploy
-
 Vid merge till `main` triggar GitHub Actions:
 1. `npm ci`
 2. `npm run build` → bygger till `/dist`
@@ -155,10 +106,34 @@ Vid merge till `main` triggar GitHub Actions:
 Verifiera på: https://carlgerhardsson.github.io/milrakt/
 
 ### Steg 4d: Städa upp
-
 ```bash
 git branch -d feature/vite-ts-migration
 git push origin --delete feature/vite-ts-migration
+```
+
+---
+
+## Filstruktur efter migrering
+
+```
+milrakt/
+├── .github/workflows/deploy.yml   ← uppdaterad för Vite-bygge
+├── src/
+│   ├── types.ts                   ← MileageStatus interface
+│   ├── logic.ts                   ← calculateMileageStatus()
+│   ├── ui.ts                      ← renderStatus()
+│   └── main.ts                    ← DOMContentLoaded entry point
+├── tests/
+│   └── logic.test.ts              ← enhetstester
+├── public/
+│   ├── manifest.json
+│   └── icons/
+├── index.html                     ← Vite entry point
+├── style.css
+├── vite.config.ts                 ← base: '/milrakt/'
+├── tsconfig.json                  ← strict: true
+├── eslint.config.js
+└── package.json
 ```
 
 ---
@@ -167,4 +142,4 @@ git push origin --delete feature/vite-ts-migration
 
 Med Vite + TypeScript + Vitest + BMAD på plats är projektet redo för nästa
 utvecklingssteg: API-integration, fler features och utökad testning —
-allt i ett robust, typsäkert och välplanerat ramverk.
+allt planerat och implementerat via BMAD:s fulla flöde.
