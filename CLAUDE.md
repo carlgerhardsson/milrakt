@@ -19,33 +19,48 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 ## Nuvarande fas
 
-Migrering från single-file `index.html` till Vite + TypeScript.
-Arkitektur klar. Nästa steg: `bmad-create-epics-and-stories` → `bmad-dev-story`.
-Se `STATUS.md` för exakt nästa steg.
+Migrering till Vite + TypeScript — KLAR ✅
+Se `STATUS.md` för nästa feature.
+
+---
+
+## GIT-REGLER — KRITISKT VIKTIGT
+
+⚠️ PUSHA ALDRIG DIREKT TILL `main` ⚠️
+
+Alla kodändringar MÅSTE följa detta flöde:
+1. `git checkout -b feature/kort-beskrivning` — skapa branch FÖRE implementering
+2. Implementera och validera på branchen
+3. `git push origin feature/kort-beskrivning`
+4. Claude Desktop skapar PR — du mergar ALDRIG själv till main
+
+**Varför:** Push direkt till `main` triggar deploy omedelbart och kringgår granskning.
+Alla commits till `main` ska gå via PR som Claude Desktop skapar.
 
 ---
 
 ## Rollfördelning — BMAD fullt flöde
 
-- **Claude Code CLI (du):** Kör BMAD-planering, stories och implementering via `bmad-dev-story`
-- **Claude Desktop:** Koordinerar, granskar, pushar till GitHub och skapar PR
-- **Blanda inte rollerna** — implementering sker via `bmad-dev-story` i CLI, inte via Claude Desktop direkt
+- **Claude Code CLI (du):** BMAD-planering, stories, implementering, validering, git på feature-branch
+- **Claude Desktop:** Koordinerar, granskar, skapar PR via GitHub API
+- **Blanda inte rollerna** — pusha aldrig till main, skapa aldrig PR själv
 
 ---
 
-## BMAD-flöde för ny feature/migrering
+## BMAD-flöde för ny feature
 
-1. `bmad-generate-project-context` — uppdatera projektkontexten vid behov
-2. `bmad-create-architecture` — arkitekturbeslut (redan klart för denna migrering)
-3. `bmad-create-epics-and-stories` — bryt ner i implementerbara stories
-4. `git checkout -b feature/namn` — skapa feature-branch
-5. `bmad-dev-story` — implementera en story i taget
-6. Validera: `npm run type-check && npm run test && npm run build`
-7. `git commit + push` → PR → merge → auto-deploy
+1. `bmad-generate-project-context` — vid behov
+2. `bmad-create-architecture` — arkitekturbeslut
+3. `bmad-create-epics-and-stories` — bryt ner i stories
+4. `git checkout -b feature/namn` — ALLTID före implementering
+5. `bmad-dev-story` — implementera en story i taget på feature-branchen
+6. `npm run type-check && npm run test && npm run build` — validera
+7. `git push origin feature/namn` — pusha branchen
+8. Meddela Claude Desktop → PR skapas → du mergar på GitHub
 
 ---
 
-## Kritiska regler (kortversion)
+## Kritiska kodingregler
 
 - `base: '/milrakt/'` i vite.config.ts — ALLTID, annars 404 på GitHub Pages
 - `new Date(val + 'T12:00:00')` — undviker timezone-buggar vid datumparsning
