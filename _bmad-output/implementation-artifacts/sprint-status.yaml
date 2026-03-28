@@ -52,7 +52,7 @@ development_status:
   epic-1-retrospective: optional
 
   # ── Epic 2: Deployable PWA on GitHub Pages ───────────────────────────────
-  epic-2: backlog
-  2-1-pwa-manifest-installability: backlog
-  2-2-cicd-pipeline-live-deployment: backlog
+  epic-2: in-progress
+  2-1-pwa-manifest-installability: review
+  2-2-cicd-pipeline-live-deployment: review
   epic-2-retrospective: optional
