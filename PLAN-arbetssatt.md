@@ -2,11 +2,12 @@
 
 ## Översikt
 
-Detta dokument beskriver hur vi ställer in och övergår till ett professionellt
-utvecklingsarbetsflöde med två separata roller:
+Detta dokument beskriver det professionella utvecklingsarbetsflödet med tre
+samverkande roller:
 
 - **Claude Desktop (Arkitekt)**: Kravställning, UI-design, affärslogik. Skriver filer direkt till disk via Filesystem MCP.
-- **Claude Code CLI (Bygglag)**: Teknisk exekvering i lokal terminal. Kör tester och typkontroll lokalt.
+- **BMAD i Claude Code CLI (Planerare)**: Strukturerad planering med specialiserade AI-agenter — Arkitekt, PM, Analyst m.fl.
+- **Claude Code CLI (Bygglag)**: Teknisk exekvering i lokal terminal. Kör tester, typkontroll, git och deploy.
 
 ---
 
@@ -14,8 +15,8 @@ utvecklingsarbetsflöde med två separata roller:
 
 Kontrollera att följande är installerat på din dator:
 
-```bash
-node --version    # Kräver Node.js 18+
+```powershell
+node --version    # Kräver Node.js 20+
 npm --version
 git --version
 ```
@@ -38,11 +39,6 @@ Filesystem MCP låter Claude Desktop läsa och skriva filer direkt till din disk
 
 ### 3a. Öppna konfigurationsfilen
 
-Mac:
-```bash
-open ~/Library/Application\ Support/Claude/claude_desktop_config.json
-```
-
 Windows:
 ```
 %APPDATA%\Claude\claude_desktop_config.json
@@ -58,101 +54,98 @@ Windows:
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/FULL/PATH/TILL/DIN/PROJEKTMAPP"
+        "C:\\Users\\gerhardssonc\\Projekt_med_Claude"
       ]
     }
   }
 }
 ```
 
-Byt ut `/FULL/PATH/TILL/DIN/PROJEKTMAPP` mot den faktiska sökvägen där du
-vill ha projektet, t.ex. `/Users/carl/projekt/milrakt`.
+### 3c. Starta om Claude Desktop
 
-### 3c. Klona repot till den mappen
-
-```bash
-git clone https://github.com/carlgerhardsson/milrakt.git /Users/carl/projekt/milrakt
-```
-
-### 3d. Starta om Claude Desktop
-
-Stäng och öppna appen igen. Du ska nu se en liten ikon/indikator som visar
-att Filesystem MCP är aktivt.
+Stäng och öppna appen igen. Verifiera i Settings → Developer att Filesystem MCP är aktivt.
 
 ---
 
-## Steg 4: Installera Claude Code CLI
+## Steg 4: Installera Claude Code CLI (native installer)
 
-```bash
-npm install -g @anthropic-ai/claude-code
+```powershell
+irm https://claude.ai/install.ps1 | iex
 ```
 
-Verifiera:
-```bash
+Verifiera (i nytt terminalfönster efter omstart av VSCode):
+```powershell
 claude --version
 ```
 
-Logga in:
-```bash
-claude login
+---
+
+## Steg 5: Installera BMAD i projektmappen
+
+```powershell
+cd C:\Users\gerhardssonc\Projekt_med_Claude\milrakt
+npx bmad-method install
+```
+
+Installern ställer tre frågor:
+- **Plats**: current directory
+- **AI-verktyg**: Claude Code
+- **Modul**: BMad Method
+
+Verifiera att BMAD fungerar genom att starta Claude Code CLI och köra:
+```
+bmad-help
 ```
 
 ---
 
-## Steg 5: Verifiera att allt fungerar
+## Steg 6: Det fullständiga arbetsflödet
 
-### Testa Claude Desktop + Filesystem MCP
-Öppna Claude Desktop och skriv:
-> "Lista filerna i mitt milrakt-projekt"
-
-Claude ska kunna se och lista filer utan att du kopierar någon kod.
-
-### Testa Claude Code CLI
-Navigera till projektmappen och starta:
-```bash
-cd /Users/carl/projekt/milrakt
-claude
 ```
-
-Skriv:
-> "Visa mig filstrukturen i detta projekt"
-
-Fungerar båda → du är klar.
+┌─────────────────────────────────────────────────────────────────┐
+│                   FULLSTÄNDIGT ARBETSFLÖDE                      │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  1. PLANERING (Claude Code CLI + BMAD)                          │
+│     - Starta: claude (i projektmappen)                          │
+│     - bmad-generate-project-context  ← dokumenterar kodbasen   │
+│     - /architect                     ← BMAD Arkitekt-agent      │
+│       Producerar: architecture doc + user stories               │
+│                                                                 │
+│  2. IMPLEMENTERING (Claude Desktop + Filesystem MCP)            │
+│     - Krav och stories diskuteras här i chatten                 │
+│     - Filer skrivs direkt till disk via Filesystem MCP          │
+│                                                                 │
+│  3. LOKAL VALIDERING (Claude Code CLI)                          │
+│     - npm run type-check                                        │
+│     - npm run test                                              │
+│     - npm run build                                             │
+│     - npm run lint                                              │
+│     Fel → loop tillbaka till steg 2 tills 100% grönt            │
+│                                                                 │
+│  4. LEVERANS (Claude Code CLI)                                  │
+│     - git add . && git commit -m "beskrivning"                  │
+│     - git push origin feature/namn                              │
+│     - PR skapas (av Claude Desktop via GitHub API)              │
+│     - Merge → GitHub Actions deployer automatiskt till Pages    │
+│                                                                 │
+└─────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## Steg 6: Det nya arbetsflödet i praktiken
+## Rollfördelning — sammanfattning
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                   NYTT ARBETSFLÖDE                      │
-├─────────────────────────────────────────────────────────┤
-│                                                         │
-│  1. DESIGN & IMPLEMENTERING (Claude Desktop)            │
-│     - Krav diskuteras och fastställs                    │
-│     - UI och affärslogik designas                       │
-│     - Filer skrivs direkt till disk via Filesystem MCP  │
-│                                                         │
-│  2. LOKAL VALIDERING (Claude Code CLI)                  │
-│     - cd till projektmappen                             │
-│     - Starta: claude                                    │
-│     - Be CLI-agenten köra: npm run type-check           │
-│     - Be CLI-agenten köra: npm run test                 │
-│     - Eventuella fel åtgärdas i loop tills 100% grönt   │
-│                                                         │
-│  3. DEPLOYMENT (Claude Code CLI)                        │
-│     - git checkout -b feature/namn                      │
-│     - git add . && git commit -m "beskrivning"          │
-│     - git push origin feature/namn                      │
-│     - GitHub Actions deployer automatiskt till Pages    │
-│                                                         │
-└─────────────────────────────────────────────────────────┘
-```
+| Roll | Verktyg | Ansvar |
+|------|---------|--------|
+| Planerare | Claude Code CLI + BMAD | Arkitektur, stories, projektkontext |
+| Arkitekt | Claude Desktop + Filesystem MCP | Design, krav, kod skriven till disk |
+| Bygglag | Claude Code CLI | type-check, test, build, git, push |
+| CI/CD-robot | GitHub Actions | Bygg och deploy till Pages vid push |
 
 ---
 
 ## Nästa steg
 
-När detta arbetssätt är verifierat och fungerar lokalt går vi vidare med
-`PLAN-migrering.md` — migrering till Vite + TypeScript med detta
-arbetssätt som grund.
+När detta arbetssätt är verifierat går vi vidare med
+`PLAN-migrering.md` — migrering till Vite + TypeScript med BMAD som grund.

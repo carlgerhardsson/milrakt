@@ -11,8 +11,8 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 
 ## Viktiga filer att läsa före implementering
 
-1. `_bmad-output/project-context.md` — 30 kritiska regler för detta projekt (LÄS ALLTID DENNA FÖRST)
-2. `PLAN-migrering.md` — plan för Vite + TypeScript-migreringen
+1. `_bmad-output/project-context.md` — 30 kritiska regler (LÄS ALLTID DENNA FÖRST)
+2. `_bmad-output/planning-artifacts/architecture.md` — arkitekturbeslut och implementeringsordning
 3. `STATUS.md` — aktuell sessionsstatus och nästa steg
 
 ---
@@ -20,24 +20,38 @@ En mobilanpassad PWA för att följa upp körsträcka vid privat elbilsleasing.
 ## Nuvarande fas
 
 Migrering från single-file `index.html` till Vite + TypeScript.
+Arkitektur klar. Nästa steg: `bmad-create-epics-and-stories` → `bmad-dev-story`.
 Se `STATUS.md` för exakt nästa steg.
 
 ---
 
-## Rollfördelning
+## Rollfördelning — BMAD fullt flöde
 
-- **Claude Code CLI (du):** Kör BMAD-planering, validering (type-check/test/build) och git-operationer
-- **Claude Desktop:** Skriver kod och filer till disk via Filesystem MCP
-- **Blanda inte rollerna** — kör inte git-kommandon om Claude Desktop bad dig implementera, och vice versa
+- **Claude Code CLI (du):** Kör BMAD-planering, stories och implementering via `bmad-dev-story`
+- **Claude Desktop:** Koordinerar, granskar, pushar till GitHub och skapar PR
+- **Blanda inte rollerna** — implementering sker via `bmad-dev-story` i CLI, inte via Claude Desktop direkt
+
+---
+
+## BMAD-flöde för ny feature/migrering
+
+1. `bmad-generate-project-context` — uppdatera projektkontexten vid behov
+2. `bmad-create-architecture` — arkitekturbeslut (redan klart för denna migrering)
+3. `bmad-create-epics-and-stories` — bryt ner i implementerbara stories
+4. `git checkout -b feature/namn` — skapa feature-branch
+5. `bmad-dev-story` — implementera en story i taget
+6. Validera: `npm run type-check && npm run test && npm run build`
+7. `git commit + push` → PR → merge → auto-deploy
 
 ---
 
 ## Kritiska regler (kortversion)
 
 - `base: '/milrakt/'` i vite.config.ts — ALLTID, annars 404 på GitHub Pages
-- `new Date(val + 'T12:00:00')` — undviker timezone-buggar vid datumparser
+- `new Date(val + 'T12:00:00')` — undviker timezone-buggar vid datumparsning
 - Svenska UI-texter, engelsk kod
 - Inga UI-ramverk (React, Vue etc.) — vanilla TypeScript
+- `isOutOfRange === true` → visa "Utanför avtalsperioden", dölj alla värden
 - Validera alltid innan push: `npm run type-check && npm run test && npm run build`
 
 ---

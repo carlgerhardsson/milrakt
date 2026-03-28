@@ -59,61 +59,19 @@ _This document builds collaboratively through step-by-step discovery. Sections a
 
 ## Starter Template Evaluation
 
-### Primary Technology Domain
-
-Frontend PWA / Static site — vanilla TypeScript with Vite build tooling.
-
-### Starter Options Considered
-
-This is a brownfield migration from a single-file `index.html` to a modular Vite +
-TypeScript project. A framework CLI starter (e.g. create-next-app, create-vite) is
-not appropriate — the project is intentionally minimal and vanilla. The scaffold is
-manually defined.
-
 ### Selected Starter: Custom Vite Scaffold (manual)
 
-**Rationale for Selection:**
-Project is an intentionally vanilla TypeScript app. No UI framework is permitted.
-A CLI starter would introduce unnecessary abstractions. The scaffold mirrors what
-`vite create --template vanilla-ts` would produce, but with custom module structure
-matching the boundaries defined in project-context.md.
+This is a brownfield migration. No CLI starter needed. The scaffold mirrors `vite create --template vanilla-ts` with custom module structure matching project-context.md boundaries.
 
-**Initialization Command:**
+**Language & Runtime:** TypeScript ^5.0.0, strict: true. Node.js 18+.
 
-```bash
-npm install
-```
+**Styling:** Plain CSS with CSS custom properties. Palette: `--bg`, `--card`, `--border`, `--accent`, `--green`, `--orange`, `--red`, `--text`, `--muted`. Fonts: DM Mono (body), Playfair Display (h1 only).
 
-(package.json already defined in PLAN-migrering.md — no CLI scaffolding needed)
+**Build:** Vite ^5.0.0. `tsc && vite build`. Output: `./dist`. `base: '/milrakt/'`.
 
-**Architectural Decisions Provided by Scaffold:**
+**Testing:** Vitest ^1.0.0. `tests/*.test.ts`. Only `src/logic.ts` tested. `vitest run`.
 
-**Language & Runtime:**
-TypeScript ^5.0.0, strict: true, tsc --noEmit as pre-commit gate. Node.js 18+.
-
-**Styling Solution:**
-Plain CSS with CSS custom properties (variables). No CSS framework. Palette:
-`--bg`, `--card`, `--border`, `--accent`, `--green`, `--orange`, `--red`, `--text`, `--muted`.
-Fonts: DM Mono (body), Playfair Display (h1 only).
-
-**Build Tooling:**
-Vite ^5.0.0. Build command: `tsc && vite build`. Output: `./dist`. `base: '/milrakt/'`.
-Static assets in `public/` (Vite copies to dist automatically).
-
-**Testing Framework:**
-Vitest ^1.0.0. Test files in `tests/*.test.ts`. Only `src/logic.ts` is tested (no DOM tests).
-Run with `vitest run` (not watch mode).
-
-**Code Organization:**
-- `src/logic.ts` — pure calculation functions, zero DOM imports
-- `src/ui.ts` — all DOM manipulation, imports from logic.ts and types.ts
-- `src/types.ts` — shared interfaces/types (e.g. `MileageStatus`)
-- `src/main.ts` — entry point only, wires modules, minimal logic
-- `tests/logic.test.ts` — unit tests for logic.ts
-- `public/` — static assets (manifest.json, icons)
-- `index.html` — Vite entry point at project root
-
-**Development Experience:**
+**Scripts:**
 - `npm run dev` — Vite dev server with HMR
 - `npm run type-check` — tsc --noEmit (pre-commit gate)
 - `npm run test` — vitest run
@@ -123,42 +81,16 @@ Run with `vitest run` (not watch mode).
 
 ## Core Architectural Decisions
 
-### Decision Priority Analysis
+### Critical Decisions
 
-**Critical Decisions (Block Implementation):**
 - Out-of-range return type: `MileageStatus` with `isOutOfRange: boolean` flag
 - Module boundary enforcement: logic.ts is DOM-free, ui.ts owns all DOM
 - Vite base path: `'/milrakt/'` — required for GitHub Pages subpath
-
-**Important Decisions (Shape Architecture):**
 - CSS organization: single stylesheet, all colors via CSS custom properties
-- Test scope: only `src/logic.ts` is tested — no DOM/UI tests
+- Test scope: only `src/logic.ts` — no DOM/UI tests
 - CI validation gate: `type-check && test && build` before every push
 
-**Deferred Decisions (Post-MVP):**
-- None — scope is intentionally locked for this migration
-
-### Data Architecture
-
-No database, no storage, no API. All state is derived from:
-- Hardcoded contract constants: `START=2026-02-16`, `END=2029-02-16`, `TOTAL_MIL=3000`
-- Current date (passed in as parameter — enables testability)
-- No external data dependencies
-
-### Authentication & Security
-
-Not applicable. Public static site, no user accounts, no sensitive data.
-
-### API & Communication Patterns
-
-Not applicable. Pure client-side computation only.
-
-### Frontend Architecture
-
-**State Management:** None. UI is a pure render of `calculateMileageStatus(new Date())`.
-No reactive state, no store. `ui.ts` calls `logic.ts` and writes to DOM directly.
-
-**Core Type:**
+### Core Type
 
 ```typescript
 export interface MileageStatus {
@@ -170,42 +102,28 @@ export interface MileageStatus {
 }
 ```
 
-**Module boundaries (enforced):**
+### Module Boundaries (enforced)
+
 - `logic.ts` — pure functions, zero DOM imports. `calculateMileageStatus(date: Date): MileageStatus`
 - `ui.ts` — all DOM manipulation, checks `isOutOfRange` before rendering values
 - `types.ts` — `MileageStatus` interface and any future shared types
 - `main.ts` — entry point, calls `ui.ts` on `DOMContentLoaded`, minimal logic
 
-**Component architecture:** No components. Single-page, single-function render cycle.
+### Implementation Sequence
 
-**Routing:** None. Single view.
-
-**Bundle optimization:** Vite default (tree-shaking, minification). No manual optimization needed at this scale.
-
-### Infrastructure & Deployment
-
-- Host: GitHub Pages at `https://carlgerhardsson.github.io/milrakt/`
-- CI/CD: GitHub Actions — push to `main` triggers build + deploy
-- Build artifact: `./dist` (Vite output)
-- Validation gate (enforced pre-push): `npm run type-check && npm run test && npm run build`
-- Branch strategy: `feature/short-description` → PR → merge to `main` → auto-deploy
-- Commit format: conventional commits (`feat:`, `fix:`, `chore:`, `test:`)
-
-### Decision Impact Analysis
-
-**Implementation Sequence:**
-1. Scaffold file structure (`src/`, `tests/`, `public/`, `index.html`, `vite.config.ts`, `tsconfig.json`, `package.json`)
-2. Implement `types.ts` (`MileageStatus` interface)
-3. Implement `logic.ts` (`calculateMileageStatus`, pure, testable)
-4. Write `tests/logic.test.ts` (all required coverage cases)
-5. Implement `ui.ts` (DOM rendering, `isOutOfRange` guard)
-6. Wire `main.ts` (`DOMContentLoaded` → `ui.ts`)
-7. Migrate CSS to stylesheet with CSS variables
+1. Scaffold file structure
+2. Implement `types.ts`
+3. Implement `logic.ts`
+4. Write `tests/logic.test.ts`
+5. Implement `ui.ts`
+6. Wire `main.ts`
+7. Migrate CSS to stylesheet
 8. Validate: `type-check && test && build`
-9. Update `.github/workflows/deploy.yml` for Vite build
-10. Push, verify live on GitHub Pages
+9. Update `.github/workflows/deploy.yml`
+10. Push, verify live
 
-**Cross-Component Dependencies:**
+### Cross-Component Dependencies
+
 - `types.ts` has no dependencies — must exist first
 - `logic.ts` depends on `types.ts` only
 - `tests/` depends on `logic.ts` only
@@ -214,66 +132,20 @@ export interface MileageStatus {
 
 ## Implementation Patterns & Consistency Rules
 
-### Critical Conflict Points Identified
+### Naming Conventions
 
-6 areas where AI agents could make different choices — all resolved below.
+- Functions/variables: `camelCase`
+- Interfaces/types: `PascalCase`
+- Source files: `camelCase.ts`
+- CSS classes: `kebab-case`
+- CSS variables: `--kebab-case`
+- Constants: `SCREAMING_SNAKE_CASE`
 
-### Naming Patterns
+### Critical Process Patterns
 
-**Code Naming Conventions:**
-- Functions and variables: `camelCase` (e.g. `calculateMileageStatus`, `daysLeft`)
-- Interfaces and types: `PascalCase` (e.g. `MileageStatus`)
-- Source files: `camelCase.ts` (e.g. `logic.ts`, `main.ts`, `ui.ts`, `types.ts`)
-- CSS classes: `kebab-case` (e.g. `.progress-bar`, `.status-card`)
-- CSS variables: `--kebab-case` (e.g. `--bg`, `--accent`, `--muted`)
-- Constants: `SCREAMING_SNAKE_CASE` (e.g. `START_DATE`, `END_DATE`, `TOTAL_MIL`)
+**Out-of-Range Rendering:**
+When `isOutOfRange === true` → HIDE all values, SHOW "Utanför avtalsperioden", return early.
 
-**Anti-pattern:** Never use `snake_case` for TypeScript identifiers.
-
-### Structure Patterns
-
-**Project Organization:**
-- Tests live in `tests/` directory (separate from src) — never co-located
-- Test files named `*.test.ts` matching their source: `logic.test.ts` tests `logic.ts`
-- Static assets always in `public/` — never in `src/`
-- No subdirectories inside `src/` — flat module structure at this scale
-
-**File Structure (canonical):**
-```
-src/types.ts        ← interfaces/types only, no logic, no DOM
-src/logic.ts        ← pure functions only, imports from types.ts
-src/ui.ts           ← DOM only, imports from logic.ts + types.ts
-src/main.ts         ← wiring only, imports from ui.ts
-tests/logic.test.ts
-public/manifest.json
-public/icons/
-index.html          ← project root (Vite entry point)
-```
-
-### Format Patterns
-
-**Number Display:**
-- All mileage values: `toFixed(1)` — always 1 decimal place, no exceptions
-- Example: `1234.5` not `1234` or `1234.50`
-
-**Date Parsing:**
-- Always: `new Date(val + 'T12:00:00')` — prevents timezone midnight-rollover
-- Never: `new Date(val)` for date-only strings
-
-**Swedish UI strings:**
-- All user-visible text in Swedish
-- Code identifiers, comments, and commit messages in English
-
-### Process Patterns
-
-**Out-of-Range Rendering (critical consistency rule):**
-When `MileageStatus.isOutOfRange === true`:
-- HIDE all mileage values and the progress bar
-- SHOW a neutral Swedish message: *"Utanför avtalsperioden"*
-- Do NOT show 0 mil, 3000 mil, or any calculated value
-- Do NOT show an error state — this is expected behaviour, not an error
-
-Example guard pattern in `ui.ts`:
 ```typescript
 if (status.isOutOfRange) {
   // render: "Utanför avtalsperioden"
@@ -282,64 +154,42 @@ if (status.isOutOfRange) {
 // render normal mileage UI
 ```
 
-**Error Handling:**
-- No runtime errors expected — all inputs are internal (no user input to validate)
-- TypeScript strict mode is the error prevention strategy
-- No try/catch blocks needed in `logic.ts`
+**Date Parsing:** Always `new Date(val + 'T12:00:00')` — never `new Date(val)`.
 
-**Loading States:**
-- Not applicable — computation is synchronous and instant
+**Number Display:** Always `toFixed(1)` — never raw or `toFixed(0)`.
 
-### Enforcement Guidelines
+### Anti-Patterns
 
-**All AI Agents MUST:**
-- Check `isOutOfRange` before rendering any mileage value
-- Never import DOM APIs in `logic.ts`
-- Never hardcode hex colors — use CSS variables only
-- Always use `toFixed(1)` for mileage display
-- Always parse date strings as `new Date(val + 'T12:00:00')`
-- Keep `base: '/milrakt/'` in vite.config.ts — never change to `'/'`
-- Run `type-check && test && build` before committing
-
-**Anti-Patterns:**
-- `new Date('2026-02-16')` — timezone bug risk, use `new Date('2026-02-16T12:00:00')`
-- Importing `document` or DOM APIs in `logic.ts` — breaks module boundary
-- `color: #0d1117` in CSS — use `var(--bg)` instead
-- `value.toFixed(0)` or raw number — must always be `toFixed(1)`
+- `new Date('2026-02-16')` — timezone bug, use `+ 'T12:00:00'`
+- DOM imports in `logic.ts` — breaks module boundary
+- Hardcoded hex in CSS — use CSS variables
 - `base: '/'` in vite.config.ts — causes 404 on GitHub Pages
+- Raw number display — always `toFixed(1)`
 
-## Project Structure & Boundaries
-
-### Complete Project Directory Structure
+## Project Structure
 
 ```
 milrakt/
-├── .github/
-│   └── workflows/
-│       └── deploy.yml          ← GitHub Actions: npm ci → npm run build → upload ./dist
+├── .github/workflows/deploy.yml   ← npm ci → npm run build → upload ./dist
 ├── src/
-│   ├── types.ts                ← MileageStatus interface (no logic, no DOM)
-│   ├── logic.ts                ← calculateMileageStatus(date: Date): MileageStatus
-│   ├── ui.ts                   ← renderStatus(status: MileageStatus): void
-│   └── main.ts                 ← DOMContentLoaded → renderStatus(calculateMileageStatus(new Date()))
+│   ├── types.ts                   ← MileageStatus interface only
+│   ├── logic.ts                   ← calculateMileageStatus(date: Date): MileageStatus
+│   ├── ui.ts                      ← renderStatus(status: MileageStatus): void
+│   └── main.ts                    ← DOMContentLoaded → renderStatus(calculateMileageStatus(new Date()))
 ├── tests/
-│   └── logic.test.ts           ← unit tests for logic.ts only
+│   └── logic.test.ts              ← unit tests for logic.ts only
 ├── public/
-│   ├── manifest.json           ← PWA manifest (theme-color must match --bg)
-│   └── icons/                  ← app icons (referenced by manifest.json)
-├── index.html                  ← Vite entry point; references src/main.ts
-├── style.css                   ← all styles; CSS variables define full palette
-├── vite.config.ts              ← base: '/milrakt/' (non-negotiable)
-├── tsconfig.json               ← strict: true
-├── eslint.config.js            ← scope: eslint src
-├── package.json                ← scripts: dev, build, type-check, test, lint
-├── .gitignore
-└── README.md
+│   ├── manifest.json              ← PWA manifest (theme-color must match --bg)
+│   └── icons/
+├── index.html                     ← Vite entry point
+├── style.css                      ← all styles, CSS variables
+├── vite.config.ts                 ← base: '/milrakt/' (non-negotiable)
+├── tsconfig.json                  ← strict: true
+├── eslint.config.js
+└── package.json
 ```
 
-### Architectural Boundaries
-
-**Module Boundaries (strict import rules):**
+### Module Import Boundary Table
 
 | Module | May import | May NOT import |
 |---|---|---|
@@ -349,156 +199,18 @@ milrakt/
 | `main.ts` | `ui.ts` | `logic.ts`, `types.ts` directly |
 | `tests/logic.test.ts` | `logic.ts`, `types.ts` | DOM APIs, `ui.ts`, `main.ts` |
 
-**Style Boundaries:**
-- All colours defined as CSS variables in `style.css`
-- No inline styles anywhere in `index.html` or TypeScript files
-- `theme-color` value must be identical in: `style.css` (`--bg`), `index.html` (meta tag), `manifest.json`
+### PWA Sync Constraint
 
-**Build Boundary:**
-- `./dist` is generated output only — never edited manually
-- `./public` contents are copied to `./dist` verbatim by Vite
-
-### Requirements to Structure Mapping
-
-**Core calculation** (`calculateMileageStatus`):
-→ `src/types.ts` (MileageStatus interface) + `src/logic.ts` (implementation)
-
-**Progress bar + colour thresholds** (<33% accent, 33–66% green, >66% orange):
-→ `src/ui.ts` (threshold logic) + `style.css` (CSS variables for colours)
-
-**Out-of-range handling** (`isOutOfRange: true` → "Utanför avtalsperioden"):
-→ `src/ui.ts` (guard pattern at top of render function)
-
-**PWA** (installable, offline-capable):
-→ `public/manifest.json` + `index.html` (Apple meta tags) + `style.css` (theme-color sync)
-
-**Test coverage** (start, end, midpoint, before-start, after-end, mil/week):
-→ `tests/logic.test.ts`
-
-**Deployment** (GitHub Pages, auto-deploy on push to main):
-→ `.github/workflows/deploy.yml` + `vite.config.ts` (`base: '/milrakt/'`)
-
-### Integration Points
-
-**Internal Data Flow:**
-```
-new Date()
-  → logic.ts: calculateMileageStatus(date)
-  → MileageStatus { targetMileage, percentComplete, milesPerWeekNeeded, daysLeft, isOutOfRange }
-  → ui.ts: renderStatus(status)
-  → DOM updates
-```
-
-**External Integrations:** None. No API calls, no third-party services.
-
-**PWA Sync Constraint:**
-`theme-color: #0d1117` must be kept identical across:
+`theme-color: #0d1117` must be identical in:
 1. `style.css`: `--bg: #0d1117`
 2. `index.html`: `<meta name="theme-color" content="#0d1117">`
 3. `manifest.json`: `"theme_color": "#0d1117"`
 
-### Development Workflow Integration
-
-**Development Server:**
-`npm run dev` → Vite serves from project root, HMR enabled, base path applies
-
-**Build Process:**
-`npm run build` → `tsc && vite build` → outputs to `./dist/`
-Assets in `public/` copied to `dist/` automatically.
-
-**Deployment:**
-Push to `main` → GitHub Actions → `npm ci` → `npm run build` → upload `./dist` → GitHub Pages at `https://carlgerhardsson.github.io/milrakt/`
-
-## Architecture Validation Results
-
-### Coherence Validation ✅
-
-**Decision Compatibility:**
-All technology choices (Vite 5, TypeScript 5, Vitest 1, ESLint 9) are mutually compatible
-and well-established in combination. No version conflicts identified.
-
-**Pattern Consistency:**
-Naming conventions have no overlaps: `camelCase` (files/vars/functions), `PascalCase` (types),
-`SCREAMING_SNAKE_CASE` (constants), `kebab-case` (CSS). All patterns support the vanilla TS constraint.
-
-**Structure Alignment:**
-The flat `src/` structure directly supports the 4-module boundary design. The module import
-table makes boundaries enforceable and verifiable.
-
-### Requirements Coverage Validation ✅
-
-All functional requirements are mapped to specific files (see Requirements to Structure Mapping).
-All NFRs are addressed: offline-capability (no API calls), strict TypeScript (tsconfig),
-test gate (validation workflow), GitHub Pages (`vite.config.ts` base + `deploy.yml`).
-
-### Implementation Readiness Validation ✅
-
-**Decision Completeness:** All critical decisions documented. Core type fully specified.
-Module boundaries tabulated. Anti-patterns listed with examples.
-
-**Structure Completeness:** Every file in the project tree is named and annotated with its role.
-
-**Pattern Completeness:** All 6 conflict points identified and resolved.
-Guard pattern for `isOutOfRange` provided as concrete code example.
-
-### Gap Analysis Results
-
-**Critical Gaps:** None.
-**Important Gaps:** None.
-**Minor / Future consideration:** `isOutOfRange` does not distinguish before-start from
-after-end. Current spec shows same message for both — acceptable for MVP. If differentiated
-messaging is needed later, add `outOfRangeReason: 'before-start' | 'after-end'` to `MileageStatus`.
-
-### Architecture Completeness Checklist
-
-**✅ Requirements Analysis**
-- [x] Project context thoroughly analyzed
-- [x] Scale and complexity assessed (Low — single-domain calculator)
-- [x] Technical constraints identified (base path, timezone, no framework)
-- [x] Cross-cutting concerns mapped (6 identified)
-
-**✅ Architectural Decisions**
-- [x] Critical decisions documented with versions
-- [x] Technology stack fully specified (Vite 5, TS 5, Vitest 1, ESLint 9)
-- [x] Module boundary rules tabulated
-- [x] Out-of-range type decision resolved (`isOutOfRange` flag)
-
-**✅ Implementation Patterns**
-- [x] Naming conventions established (4 categories)
-- [x] Structure patterns defined (flat `src/`, `tests/` separate)
-- [x] Process patterns specified (out-of-range guard, date parsing, number display)
-- [x] Anti-patterns documented with examples
-
-**✅ Project Structure**
-- [x] Complete directory structure with annotated file roles
-- [x] Module import boundaries tabulated
-- [x] PWA sync constraint documented
-- [x] Requirements-to-structure mapping complete
-
-### Architecture Readiness Assessment
+## Architecture Validation
 
 **Overall Status:** READY FOR IMPLEMENTATION
-
 **Confidence Level:** High
-
-**Key Strengths:**
-- Scope is tightly bounded — low risk of scope creep during implementation
-- Module boundaries are explicit and verifiable (import table)
-- Critical gotchas (base path, timezone parsing) are documented as anti-patterns with examples
-- PWA sync constraint is called out explicitly — easy to miss otherwise
-
-**Areas for Future Enhancement:**
-- Differentiated out-of-range messaging (before-start vs after-end) if needed
-- Additional test coverage for edge cases beyond the 6 required scenarios
-
-### Implementation Handoff
-
-**AI Agent Guidelines:**
-- Follow all architectural decisions exactly as documented
-- Use the module import boundary table — violations break the architecture
-- Check `isOutOfRange` FIRST in `ui.ts` before rendering any value
-- Refer to Anti-Patterns section before writing any code
+**Critical Gaps:** None
 
 **First Implementation Step:**
-Create the file scaffold (all files listed in Complete Project Directory Structure),
-starting with `src/types.ts` — it has no dependencies and unblocks all other modules.
+Start with `src/types.ts` — no dependencies, unblocks all other modules.
