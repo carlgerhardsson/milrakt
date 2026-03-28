@@ -12,7 +12,7 @@ export function renderStatus(status: MileageStatus): void {
   if (!el) return
 
   if (status.isOutOfRange) {
-    el.innerHTML = '' // Story 1.5 fills this
+    el.innerHTML = `<div class="card outside-range">Utanför avtalsperioden</div>`
     return
   }
 
