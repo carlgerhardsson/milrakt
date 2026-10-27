@@ -1,5 +1,19 @@
 # Sessionsstatus — Milräknar-projektet
-*Senast uppdaterad: 2026-03-28*
+*Senast uppdaterad: 2026-10-27 (🛡️ säkerhetsuppdatering #1, se nedan — ingen funktionell ändring). Föregående: 2026-03-28*
+
+---
+
+## 🛡️ SÄKERHETSUPPDATERING (2026-10-26, Säkerhetsvakten)
+Gjord utanför feature-flödet, godkänd och mergad av Carl. **Ingen applogik ändrad.**
+
+| PR | Ändring | Läge |
+|----|---------|------|
+| #1 | Deploy-workflow **Node 20 → 22** + `check-latest: true` (Node 20 är EOL, Brotli CVE-2026-111497). `npm audit fix` utan major: 2 kritiska + 6 höga → 2 kritiska + 1 hög | Mergad 2026-10-26, Pages-deploy grön |
+
+- **Produktionskoden har 0 sårbarheter.** Appen har inga runtime-beroenden.
+- **Kvar i utvecklingsverktygen:** vitest 1 / tinypool (kritiska) och vite 5 (hög). Rättningen kräver **vite 8 + vitest 5** (major), som i `carlgerhardsson/lonessystem` #44 och `carlgerhardsson/musikspelet-live` #180. Gör det gärna innan Volvo API-arbetet börjar. Ingen `dependabot.yml` finns.
+
+**Säkerhetsvakten** kör vardagar 07:46 och uppdaterar den här sektionen när en säkerhets-PR mergats. Minne och fyndlista: `carlgerhardsson/sakerhetsvakt` (`status.md`).
 
 ---
 
