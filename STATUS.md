@@ -12,7 +12,7 @@ Gjord utanför feature-flödet, godkänd och mergad av Carl. **Ingen applogik ä
 | #2 | Ny `.github/dependabot.yml`: veckovis bevakning av **npm** (minor/patch i en grupp-PR, major separat) och **GitHub Actions** (en grupp-PR). Ingen kod ändrad | Mergad 2026-10-28 |
 
 - **Produktionskoden har 0 sårbarheter.** Appen har inga runtime-beroenden.
-- **Kvar i utvecklingsverktygen:** vitest 1 / tinypool (kritiska) och vite 5 (hög). Rättningen kräver **vite 8 + vitest 5** (major), som i `carlgerhardsson/lonessystem` #44 och `carlgerhardsson/musikspelet-live` #180. Gör det gärna innan Volvo API-arbetet börjar.
+- **Kvar i utvecklingsverktygen:** vitest 1 / tinypool (kritiska) och vite 5 (hög). Rättningen kräver **vite 8 + vitest 5** (major), som i `carlgerhardsson/lonessystem` #44 och `carlgerhardsson/musikspelet-live` #180. **PR #6 öppen** (vite 8.3.5 + vitest 5.0.5 + @types/node 22, `build.target` låst till Safari 14; lokalt 0 sårbarheter, tester och bygge gröna). Merga den innan Volvo API-arbetet börjar. Dependabot-PR #4 (npm minor/patch) rör samma lockfil, så merga #6 först.
 - **Dependabot är nu på (#2):** räkna med veckovisa Dependabot-PR:er för npm och GitHub Actions (t.ex. `actions/checkout@v4`, `setup-node@v4`). Majorhöjningar (vite 8 / vitest 5) kommer som egna PR:er och kräver test före merge. Dependabots *security updates* i repo-inställningarna är fortfarande avstängda.
 
 **Säkerhetsvakten** kör vardagar 07:46 och uppdaterar den här sektionen när en säkerhets-PR mergats. Minne och fyndlista: `carlgerhardsson/sakerhetsvakt` (`status.md`).
